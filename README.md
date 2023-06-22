@@ -3,7 +3,9 @@
 Azazel is designed to assist in conducting reconnaissance activities on a specified target domain. It automates subdomain enumeration and provides options for capturing screenshots of active subdomains using Eyewitness.
 
 ## Usage
+```
 ./azazel.sh -d target -x exclude -s
+```
 
 ## Available Options
 
