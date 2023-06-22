@@ -4,7 +4,7 @@ Azazel is designed to assist in conducting reconnaissance activities on a specif
 
 ## Usage
 ```
-./azazel.sh -d target -x exclude -s
+./azazel.sh -d target.com -x exclude.domain.com -s
 ```
 
 ## Available Options
