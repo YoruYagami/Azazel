@@ -24,11 +24,15 @@ Make sure you have the necessary tools installed and available in your system be
 
 ## Options
 
-- **-d domains**: Set the target domains. This can be a single domain, a comma-separated list of domains, or a path to a file with one domain per line.
-- **-x exclude**: Exclude specific domains/subdomains.
-- **-s**: Capture screenshots on live subdomains.
-- **-p**: Use ParamSpider for discovering parameters on live subdomains.
-- **-h**: Display the help menu.
+**-d domains**: Set the target domains. This can be a single domain, a comma-separated list of domains, or a path to a file with one domain per line.
+
+**-x exclude**: Exclude specific domains/subdomains.
+
+**-s**: Capture screenshots on live subdomains.
+
+**-p**: Use ParamSpider for discovering parameters on live subdomains.
+
+**-h**: Display the help menu.
 
 ## Examples
 
