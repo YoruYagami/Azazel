@@ -4,31 +4,41 @@
 display_help() {
     echo "Usage: $0 [options]"
     echo
-    echo "   -d domain     Set the target domain."
+    echo "   -d domains    Set the target domains. This can be a single domain, a"
+    echo "                 comma-separated list of domains, or a path to a file with"
+    echo "                 one domain per line."
     echo "   -x exclude    Exclude specific domains/subdomains."
-    echo "   -s            Capture screenshots of active subdomains with Eyewitness."
+    echo "   -s            Capture screenshots on live subdomains."
+    echo "   -p            Use ParamSpider for discovering parameters on live subdomains."
     echo "   -h            Display this help menu."
     echo
 }
 
-# Variable to decide if screenshots should be taken
+# Variables to decide if screenshots should be taken and if ParamSpider should be used
 screenshots=false
+use_paramspider=false
 
-# Step 1: The Skeleton
-while getopts "hd:x:s" opt; do
+while getopts "hd:x:sp" opt; do
   case $opt in
     h)
       display_help
       exit 0
       ;;
     d)
-      target=$OPTARG
+      if [ -f "$OPTARG" ]; then
+        mapfile -t targets < $OPTARG
+      else
+        IFS=',' read -ra targets <<< "$OPTARG"
+      fi
       ;;
     x)
       exclude=$OPTARG
       ;;
     s)
       screenshots=true
+      ;;
+    p)
+      use_paramspider=true
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -43,7 +53,10 @@ while getopts "hd:x:s" opt; do
   esac
 done
 
-if [ -z "$target" ]; then
+# Debug line:
+echo "Target domains: ${targets[@]}"
+
+if [ -z "${targets[*]}" ]; then
   echo "Please specify the target domain using the -d option."
   exit 1
 fi
@@ -55,8 +68,8 @@ mkdir -p $output_dir
 start_time=$(date +%s)
 
 # Subdomain Enumeration
-subfinder -d $target -o $output_dir/subs.txt
-assetfinder -subs-only $target > $output_dir/asset.txt
+subfinder -d $targets -o $output_dir/subs.txt
+assetfinder -subs-only $targets > $output_dir/asset.txt
 
 # Consolidating All Enumerated/Collected subdomains into one file
 cat $output_dir/subs.txt $output_dir/asset.txt | sort -u > $output_dir/subdomains.txt
@@ -80,16 +93,36 @@ if [ ! -z "$exclude" ]; then
 fi
 
 # Checking which subdomains are active
-httpx -l $output_dir/subdomains.txt -o $output_dir/activesubs.txt
+httpx -l $output_dir/subdomains.txt -o $output_dir/livesubdomains.txt
+
+# If ParamSpider option is selected, run ParamSpider on each live subdomain
+if $use_paramspider ; then
+  # Check if ParamSpider is already cloned
+  home_dir="$HOME"
+  if [ ! -d "$home_dir/ParamSpider" ]; then
+    echo "Cloning ParamSpider..."
+    git clone https://github.com/devanshbatham/ParamSpider.git "$home_dir/ParamSpider"
+  fi
+  
+  # Create a directory for ParamSpider output
+  paramspider_output_dir="$output_dir/paramspider"
+  mkdir -p $paramspider_output_dir
+  
+  # Run ParamSpider on each live subdomain
+  while read -r subdomain; do
+    echo "Running ParamSpider on $subdomain"
+    python3 "$home_dir/ParamSpider/paramspider.py" -d "$subdomain" --exclude png,jpg,gif,jpeg,swf,woff,gif,svg --level high --quiet -o "$paramspider_output_dir/$subdomain.txt"
+  done < $output_dir/livesubdomains.txt
+fi
 
 # If screenshots option is selected, run Eyewitness
 if $screenshots ; then
-  eyewitness --web -f $output_dir/activesubs.txt -d $output_dir/eyewitness_report --no-prompt
+  eyewitness --web -f $output_dir/livesubdomains.txt -d $output_dir/eyewitness_report --no-prompt
 fi
 
 end_time=$(date +%s)
 runtime=$((end_time-start_time))
 
-echo "Scan completed for $target"
+echo "Scan completed for $targets"
 echo "Results are located at $output_dir"
 echo "Total scan time: $runtime seconds"
