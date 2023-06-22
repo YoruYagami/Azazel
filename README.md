@@ -63,8 +63,6 @@ The script will create a directory named scan with a subdirectory for each targe
 scan/
   ├─ example.com/
   │   └─ 202301011200/
-  │         ├─ subs.txt
-  │         ├─ asset.txt
   │         ├─ subdomains.txt
   │         ├─ livesubdomains.txt
   │         └─ paramspider/
