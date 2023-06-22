@@ -1,30 +1,84 @@
 # Azazel
 
-Azazel is designed to assist in conducting reconnaissance activities on a specified target domain. It automates subdomain enumeration and provides options for capturing screenshots of active subdomains using Eyewitness.
+Azazel is a Bash script designed to perform subdomain enumeration and reconnaissance on target domains. It utilizes various tools and options to collect subdomains, identify live subdomains, and potentially capture screenshots or discover parameters on the live subdomains.
 
 ## Usage
 ```
 ./azazel.sh -d target.com -x exclude.domain.com -s
 ```
 
-## Available Options
+## Prerequisites
+Bash
+subfinder
+assetfinder
+httpx
+ParamSpider (optional)
+Eyewitness (optional)
 
-- `-d domain`: Set the target domain.
-- `-x exclude`: Exclude specific domains/subdomains.
-- `-s`: Capture screenshots of active subdomains using Eyewitness.
-- `-h`: Display the help menu.
+Make sure you have the necessary tools installed and available in your system before running this script.
 
-## Features
+## Usage
+```
+./azazel.sh [options]
+```
 
-The script, named "Azazel," offers the following features:
+## Options
 
-1. **Subdomain Enumeration**: It utilizes the `subfinder` and `assetfinder` tools to perform comprehensive subdomain enumeration.
-2. **Consolidation**: It combines the results from the subdomain enumeration into a single file for further analysis.
-3. **Exclusion**: It allows for the exclusion of specific domains or subdomains from the analysis using the `-x` option.
-4. **Active Subdomain Identification**: It employs the `httpx` utility to determine which subdomains are active and accessible.
-5. **Screenshot Capture**: If the `-s` option is specified, the script triggers Eyewitness to capture screenshots of the active subdomains.
-6. **Reporting**: Upon completion, the script provides a summary of the scan results, including the output directory and the total scan time.
+**-d domains**: Set the target domains. This can be a single domain, a comma-separated list of domains, or a path to a file with one domain per line.
+**-x exclude**: Exclude specific domains/subdomains.
+**-s**: Capture screenshots on live subdomains.
+**-p**: Use ParamSpider for discovering parameters on live subdomains.
+**-h**: Display the help menu.
 
-The scan results are stored in the directory `scan/target/timestamp`, where `target` represents the specified domain and `timestamp` indicates the date and time of the scan.
+## Examples
 
-Note that the successful execution of the Azazel Recon script requires the installation and accessibility of the `subfinder`, `assetfinder`, `httpx`, and `eyewitness` tools.
+Perform subdomain enumeration on a single domain:
+```
+./azazel.sh -d example.com
+```
+Perform subdomain enumeration on multiple domains:
+```
+./azazel.sh -d example.com,example.org,example.net
+```
+Perform subdomain enumeration using a file with domains:
+```
+./azazel.sh -d domains.txt
+```
+Exclude specific domains/subdomains:
+```
+./azazel.sh -d example.com -x excluded.txt
+```
+Capture screenshots on live subdomains:
+```
+./azazel.sh -d example.com -s
+```
+Use ParamSpider for discovering parameters on live subdomains:
+```
+./azazel.sh -d example.com -p
+```
+## Output
+The script will create a directory named scan with a subdirectory for each target domain and a timestamped subdirectory for each scan. The output directory structure will be as follows:
+
+```
+scan/
+  ├─ example.com/
+  │   └─ 202301011200/
+  │         ├─ subs.txt
+  │         ├─ asset.txt
+  │         ├─ subdomains.txt
+  │         ├─ livesubdomains.txt
+  │         └─ paramspider/
+  │               └─ subdomain.txt
+  └─ example.org/
+        └─ ...
+```
+
+**subs.txt**: Raw subdomains obtained from subfinder.
+**asset.txt**: Raw subdomains obtained from assetfinder.
+**subdomains.txt**: Consolidated list of unique subdomains.
+**livesubdomains.txt**: List of active/live subdomains.
+**paramspider**: Directory containing ParamSpider output files (if ParamSpider option is selected).
+**eyewitness_report**: Directory containing Eyewitness report files (if screenshots option is selected).
+
+## Disclaimer
+This script is provided as-is and without any warranty. Use it at your own risk and ensure compliance with applicable laws and regulations. The authors and contributors of this script are not responsible for any misuse or damage caused.
