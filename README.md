@@ -8,12 +8,12 @@ Azazel is a Bash script designed to perform subdomain enumeration and reconnaiss
 ```
 
 ## Prerequisites
-Bash
-subfinder
-assetfinder
-httpx
-ParamSpider (optional)
-Eyewitness (optional)
+- Bash
+- subfinder
+- assetfinder
+- httpx
+- ParamSpider (optional)
+- Eyewitness (optional)
 
 Make sure you have the necessary tools installed and available in your system before running this script.
 
