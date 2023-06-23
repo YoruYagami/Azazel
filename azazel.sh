@@ -93,7 +93,7 @@ if [ ! -z "$exclude" ]; then
 fi
 
 # Checking which subdomains are active
-httpx -l $output_dir/subdomains.txt -o $output_dir/livesubdomains.txt
+httpx -l $output_dir/subdomains.txt -threads 200 -o $output_dir/livesubdomains.txt
 
 # If ParamSpider option is selected, run ParamSpider on each live subdomain
 if $use_paramspider ; then
