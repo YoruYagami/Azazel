@@ -17,9 +17,8 @@ Azazel is a bash script used for domain enumeration and parameter discovery. It 
 
 ## Options
 ```
-./azazel.sh [options]
+Usage: ./script.sh [options]
 
-Options:
    -d domains    Set the target domains. This can be a single domain, a
                  comma-separated list of domains, or a path to a file with
                  one domain per line.
@@ -27,6 +26,7 @@ Options:
    -e            Perform subdomain enumeration.
    -p            Use ParamSpider for discovering parameters on live subdomains.
    -h            Display this help menu.
+
 ```
 
 ## Prerequisites
