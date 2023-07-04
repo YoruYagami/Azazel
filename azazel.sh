@@ -107,6 +107,26 @@ for target in "${targets[@]}"; do
     while read -r subdomain; do
       echo "Running ParamSpider on $subdomain"
       python3 "$home_dir/ParamSpider/paramspider.py" -d "$subdomain" --exclude png,jpg,gif,jpeg,swf,woff,gif,svg --level high --quiet -o "$paramspider_output_dir/$subdomain.txt"
+      
+      # Use gf to find common patterns in http
+      if [ -d "$paramspider_output_dir/http:" ]; then
+        mkdir -p "$paramspider_output_dir/http:/vuln"
+        if ls $paramspider_output_dir/http:/*.txt > /dev/null 2>&1; then
+          for pattern in lfi rce redirect sqli ssrf ssti xss idor; do
+            cat $paramspider_output_dir/http:/*.txt | gf $pattern > "$paramspider_output_dir/http:/vuln/gf_${pattern}.txt"
+          done
+        fi
+      fi
+
+      # Use gf to find common patterns in https
+      if [ -d "$paramspider_output_dir/https:" ]; then
+        mkdir -p "$paramspider_output_dir/https:/vuln"
+        if ls $paramspider_output_dir/https:/*.txt > /dev/null 2>&1; then
+          for pattern in lfi rce redirect sqli ssrf ssti xss idor; do
+            cat $paramspider_output_dir/https:/*.txt | gf $pattern > "$paramspider_output_dir/https:/vuln/gf_${pattern}.txt"
+          done
+        fi
+      fi
     done < $output_dir/livesubdomains.txt
   fi
 done
