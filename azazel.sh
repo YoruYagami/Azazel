@@ -78,13 +78,16 @@ for target in "${targets[@]}"; do
 
     # Consolidating All Enumerated/Collected subdomains into one file
     cat $output_dir/subs.txt $output_dir/asset.txt | sort -u > $output_dir/subdomains.txt
-
-    # Remove the individual subs.txt and asset.txt files
-    rm $output_dir/subs.txt
-    rm $output_dir/asset.txt
     
     # Checking which subdomains are active
     httpx -l $output_dir/subdomains.txt -threads 200 -o $output_dir/livesubdomains.txt
+    cat $output_dir/livesubdomains.txt | httpx -title -status-code -fr -o $output_dir/statuscode_title.txt
+    
+    # Remove the individual subs.txt and asset.txt files
+    rm $output_dir/subs.txt
+    rm $output_dir/asset.txt
+    rm $output_dir/subdomains.txt
+
   fi
 
   # If ParamSpider option is selected, run ParamSpider on each live subdomain
