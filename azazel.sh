@@ -80,9 +80,11 @@ for target in "${targets[@]}"; do
     cat $output_dir/subs.txt $output_dir/asset.txt | sort -u > $output_dir/subdomains.txt
     
     # Checking which subdomains are active
-    httpx -l $output_dir/subdomains.txt -threads 200 -o $output_dir/livesubdomains.txt
-    cat $output_dir/livesubdomains.txt | httpx -title -status-code -fr -o $output_dir/statuscode_title.txt
-    
+    httpx -l $output_dir/subdomains.txt -threads 200 -title -status-code -o $output_dir/sub_statuscode_title.txt
+
+    # Extract only domains and save to another file
+    awk '{print $1}' $output_dir/sub_statuscode_title.txt | sed -e 's/https\?:\/\///' | sed -e 's/\/.*$//' > $output_dir/livesubdomains.txt
+
     # Remove the individual subs.txt and asset.txt files
     rm $output_dir/subs.txt
     rm $output_dir/asset.txt
