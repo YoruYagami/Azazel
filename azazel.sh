@@ -105,9 +105,10 @@ for target in "${targets[@]}"; do
     rm $output_dir/subs.txt
     rm $output_dir/asset.txt
     rm $output_dir/subdomains.txt
+
   fi
 
-  # If ParamSpider option is selected, run ParamSpider
+  # If ParamSpider option is selected, run ParamSpider on each live subdomain
   if $use_paramspider ; then
     # Check if ParamSpider is already cloned
     home_dir="$HOME"
@@ -115,22 +116,22 @@ for target in "${targets[@]}"; do
       echo "Cloning ParamSpider..."
       git clone https://github.com/devanshbatham/ParamSpider.git "$home_dir/ParamSpider"
     fi
-
+    
     # Create a directory for ParamSpider output
     paramspider_output_dir="$output_dir/paramspider"
     mkdir -p $paramspider_output_dir
+    
+    # Run ParamSpider on each live subdomain
+    while read -r subdomain; do
+      echo "Running ParamSpider on $subdomain"
+      python3 "$home_dir/ParamSpider/paramspider.py" -d "$subdomain" --exclude png,jpg,gif,jpeg,swf,woff,gif,svg --level high --quiet -o "$paramspider_output_dir/$subdomain.txt"
+    done < $output_dir/alive.txt
 
-    # If the file alive.txt exists, read from it. Otherwise, use the target domain.
-    if [ -f "$output_dir/alive.txt" ]; then
-      # Run ParamSpider on each live subdomain
-      while read -r subdomain; do
-        echo "Running ParamSpider on $subdomain"
-        python3 "$home_dir/ParamSpider/paramspider.py" -d "$subdomain" --exclude png,jpg,gif,jpeg,swf,woff,gif,svg --level high --quiet -o "$paramspider_output_dir/$subdomain.txt"
-      done < $output_dir/alive.txt
-    else
-      echo "Running ParamSpider on $target"
-      python3 "$home_dir/ParamSpider/paramspider.py" -d "$target" --exclude png,jpg,gif,jpeg,swf,woff,gif,svg --level high --quiet -o "$paramspider_output_dir/$target.txt"
-    fi
+    # Use gf to find common patterns
+    mkdir -p "$paramspider_output_dir/vuln"
+    for pattern in lfi rce redirect sqli ssrf ssti xss idor; do
+      cat $paramspider_output_dir/*.txt | gf $pattern > "$paramspider_output_dir/vuln/gf_${pattern}.txt"
+    done
   fi
 done
 
