@@ -1,5 +1,13 @@
 #!/bin/bash
 
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+CYAN="\e[0;36m"
+YELLOW="\033[0;33m"
+PURPLE='\033[0;35m'
+NC='\033[0m'
+
 # Function to display the help menu
 display_help() {
     echo "Usage: $0 [options]"
@@ -79,20 +87,27 @@ for target in "${targets[@]}"; do
     # Consolidating All Enumerated/Collected subdomains into one file
     cat $output_dir/subs.txt $output_dir/asset.txt | sort -u > $output_dir/subdomains.txt
     
+    # Count the number of subdomains found and print
+    num_subdomains=$(wc -l < $output_dir/subdomains.txt)
+    echo -e "${GREEN}[+] Collected $num_subdomains subdomains.${NC}"
+
     # Checking which subdomains are active
     httpx -l $output_dir/subdomains.txt -threads 200 -title -status-code -o $output_dir/sub_statuscode_title.txt
 
     # Extract only domains and save to another file
-    awk '{print $1}' $output_dir/sub_statuscode_title.txt | sed -e 's/https\?:\/\///' | sed -e 's/\/.*$//' > $output_dir/livesubdomains.txt
+    awk '{print $1}' $output_dir/sub_statuscode_title.txt | sed -e 's/https\?:\/\///' | sed -e 's/\/.*$//' > $output_dir/alive.txt
+
+    # Count the number of live subdomains found and print
+    num_live_subdomains=$(wc -l < $output_dir/alive.txt)
+    echo -e "${GREEN}[+] Found $num_live_subdomains live subdomains.${NC}"
 
     # Remove the individual subs.txt and asset.txt files
     rm $output_dir/subs.txt
     rm $output_dir/asset.txt
     rm $output_dir/subdomains.txt
-
   fi
 
-  # If ParamSpider option is selected, run ParamSpider on each live subdomain
+  # If ParamSpider option is selected, run ParamSpider
   if $use_paramspider ; then
     # Check if ParamSpider is already cloned
     home_dir="$HOME"
@@ -100,36 +115,22 @@ for target in "${targets[@]}"; do
       echo "Cloning ParamSpider..."
       git clone https://github.com/devanshbatham/ParamSpider.git "$home_dir/ParamSpider"
     fi
-    
+
     # Create a directory for ParamSpider output
     paramspider_output_dir="$output_dir/paramspider"
     mkdir -p $paramspider_output_dir
-    
-    # Run ParamSpider on each live subdomain
-    while read -r subdomain; do
-      echo "Running ParamSpider on $subdomain"
-      python3 "$home_dir/ParamSpider/paramspider.py" -d "$subdomain" --exclude png,jpg,gif,jpeg,swf,woff,gif,svg --level high --quiet -o "$paramspider_output_dir/$subdomain.txt"
-      
-      # Use gf to find common patterns in http
-      if [ -d "$paramspider_output_dir/http:" ]; then
-        mkdir -p "$paramspider_output_dir/http:/vuln"
-        if ls $paramspider_output_dir/http:/*.txt > /dev/null 2>&1; then
-          for pattern in lfi rce redirect sqli ssrf ssti xss idor; do
-            cat $paramspider_output_dir/http:/*.txt | gf $pattern > "$paramspider_output_dir/http:/vuln/gf_${pattern}.txt"
-          done
-        fi
-      fi
 
-      # Use gf to find common patterns in https
-      if [ -d "$paramspider_output_dir/https:" ]; then
-        mkdir -p "$paramspider_output_dir/https:/vuln"
-        if ls $paramspider_output_dir/https:/*.txt > /dev/null 2>&1; then
-          for pattern in lfi rce redirect sqli ssrf ssti xss idor; do
-            cat $paramspider_output_dir/https:/*.txt | gf $pattern > "$paramspider_output_dir/https:/vuln/gf_${pattern}.txt"
-          done
-        fi
-      fi
-    done < $output_dir/livesubdomains.txt
+    # If the file alive.txt exists, read from it. Otherwise, use the target domain.
+    if [ -f "$output_dir/alive.txt" ]; then
+      # Run ParamSpider on each live subdomain
+      while read -r subdomain; do
+        echo "Running ParamSpider on $subdomain"
+        python3 "$home_dir/ParamSpider/paramspider.py" -d "$subdomain" --exclude png,jpg,gif,jpeg,swf,woff,gif,svg --level high --quiet -o "$paramspider_output_dir/$subdomain.txt"
+      done < $output_dir/alive.txt
+    else
+      echo "Running ParamSpider on $target"
+      python3 "$home_dir/ParamSpider/paramspider.py" -d "$target" --exclude png,jpg,gif,jpeg,swf,woff,gif,svg --level high --quiet -o "$paramspider_output_dir/$target.txt"
+    fi
   fi
 done
 
