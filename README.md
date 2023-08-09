@@ -20,9 +20,43 @@ Azazel is a bash script designed to automate the discovery of vulnerabilities an
 ## Usage
 
 ```bash
-./azazel.sh [-p|-k] <target_domain>
-```
+./azazel.sh -p "http://testphp.vulnweb.com/"                                                                                    ✔    
 
+[ ! ] Executing paramspider, please wait...
+
+
+         ___                               _    __       
+        / _ \___ ________ ___ _  ___ ___  (_)__/ /__ ____
+       / ___/ _ `/ __/ _ `/  ' \(_-</ _ \/ / _  / -_) __/
+      /_/   \_,_/_/  \_,_/_/_/_/___/ .__/_/\_,_/\__/_/   
+                                  /_/                    
+                            
+                            - coded with <3 by Devansh Batham 
+    
+
+[+] Total number of retries:  0
+[+] Total unique urls found : 108
+[+] Output is saved here : scan/http://testphp.vulnweb.com//202308091233/parameter.txt
+
+[!] Total execution time      : 1.9762s
+
+Count of potential vulnerable URLs discovered:
+
+Vulnerability   URLs discovered          
+-------------   ---------------          
+lfi             34                       
+redirect        17                       
+sqli            19                       
+ssrf            20                       
+ssti            18                       
+xss             32                       
+idor            17                       
+debug_logic     3                        
+
+JavaScript files discovered: 0
+
+[+] Scan complete. Results saved in scan/http://testphp.vulnweb.com//202308091233
+```
 ## Options
 
 ```bash
@@ -56,15 +90,24 @@ chmod +x install.sh
 The script will create a directory named scan with a subdirectory for each target domain and a timestamped subdirectory for each scan. The output directory structure will be as follows:
 
 ```
-scan/
-  ├─ example.com/
-  │   └─ 202301011200/
-  │         ├─ subdomains.txt
-  │         ├─ livesubdomains.txt
-  │         └─ paramspider/
-  │               └─ subdomain.txt
-  └─ example.org/
-        └─ ...
+scan
+└── http:
+    └── testphp.vulnweb.com
+        └── 202308091233
+            ├── getjs_output.txt
+            ├── parameter.txt
+            └── paramspider
+                └── vuln
+                    ├── gf_debug_logic.txt
+                    ├── gf_idor.txt
+                    ├── gf_lfi.txt
+                    ├── gf_redirect.txt
+                    ├── gf_sqli.txt
+                    ├── gf_ssrf.txt
+                    ├── gf_ssti.txt
+                    └── gf_xss.txt
+
+6 directories, 10 files
 ```
 
 ## Disclaimer
