@@ -2,75 +2,48 @@
 
 # Azazel
 
-Azazel is a bash script used for domain enumeration and parameter discovery. It uses tools like Subfinder, Assetfinder, httpx and ParamSpider to perform various tasks.
+Azazel is a versatile bash script designed to help you discover vulnerabilities and potential security issues in web applications using various tools and pattern matching.
 
-## Features
+## Table of Contents
 
-- Performs domain enumeration and parameter discovery.
-- Supports excluding specific domains/subdomains.
-- The results are stored in an organized manner in the 'scan' directory.
+- [Introduction](#introduction)
+- [Usage](#usage)
+- [Installation](#installation)
+- [Ouput](#output)
+- [Disclaimer] (#disclaimer)
+- [License](#license)
+
+## Introduction
+
+Azazel is a bash script designed to automate the discovery of vulnerabilities and security issues in web applications. It utilizes different spidering tools (paramspider or katana) and pattern matching techniques to gather information and identify potential risks.
 
 ## Usage
-```
-./azazel.sh -d target.com -x exclude.domain.com -e -p
+
+```bash
+./azazel.sh [-p|-k] <target_domain>
 ```
 
 ## Options
-```
-Usage: ./script.sh [options]
 
-   -d domains    Set the target domains. This can be a single domain, a
-                 comma-separated list of domains, or a path to a file with
-                 one domain per line.
-   -x exclude    Exclude specific domains/subdomains.
-   -e            Perform subdomain enumeration.
-   -p            Use ParamSpider for discovering parameters on live subdomains.
-   -h            Display this help menu.
-
+```bash
+    -p: Use ParamSpider (default)
+    -k: Use Katana
+    -h: Display help message
 ```
 
-## Prerequisites
-- subfinder
-- assetfinder
-- httpx
-- ParamSpider
-
-Make sure you have the necessary tools installed and available in your system before running this script.
-
-## Options
-
-**-d domains**: Set the target domains. This can be a single domain or a path to a file with one domain per line.
-
-**-x exclude**: Exclude specific domains/subdomains.
-
-**-p**: Use ParamSpider for discovering parameters on live subdomains.
-
-**-h**: Display the help menu.
-
-## Examples
-
-Perform subdomain enumeration on a single domain:
+## Installation
+1. Clone this repository to your local machine:
+```bash
+git clone https://github.com/your-username/azazel.git
+cd azazel
 ```
-./azazel.sh -d example.com -e
+2. Make the script executable:
+```bash
+chmod +x azazel.sh
 ```
-
-Perform subdomain enumeration using a file with domains:
-```
-./azazel.sh -d domains.txt -e
-```
-Exclude specific domains/subdomains:
-```
-./azazel.sh -d example.com -x excluded.txt -e
-```
-
-Use ParamSpider for discovering parameters on direct domain:
-```
-./azazel.sh -d example.com -p
-```
-
-Perform subdomain enumeration + paramspider using a file with domains:
-```
-./azazel.sh -d domains.txt -e -p
+3. Run the script with appropriate options and target domain:
+```bash
+./azazel.sh -p example.com
 ```
 
 ## Output
@@ -88,11 +61,10 @@ scan/
         └─ ...
 ```
 
-**subs.txt**: Raw subdomains obtained from subfinder.
-**asset.txt**: Raw subdomains obtained from assetfinder.
-**subdomains.txt**: Consolidated list of unique subdomains.
-**livesubdomains.txt**: List of active/live subdomains.
-**paramspider**: Directory containing ParamSpider output files (if ParamSpider option is selected).
-
 ## Disclaimer
 This script is provided as-is and without any warranty. Use it at your own risk and ensure compliance with applicable laws and regulations. The authors and contributors of this script are not responsible for any misuse or damage caused.
+
+## License
+This project is licensed under the MIT License.
+
+Feel free to contribute, open issues, and provide feedback.
