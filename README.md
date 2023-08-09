@@ -10,7 +10,7 @@ Azazel is a versatile bash script designed to help you discover vulnerabilities 
 - [Usage](#usage)
 - [Installation](#installation)
 - [Ouput](#output)
-- [Disclaimer] (#disclaimer)
+- [Disclaimer](#disclaimer).
 - [License](#license)
 
 ## Introduction
