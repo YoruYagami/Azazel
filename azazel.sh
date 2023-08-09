@@ -1,142 +1,95 @@
 #!/bin/bash
 
-RED='\033[1;31m'
-GREEN='\033[1;32m'
-BLUE='\033[1;34m'
-CYAN="\e[0;36m"
-YELLOW="\033[0;33m"
-PURPLE='\033[0;35m'
-NC='\033[0m'
-
-# Function to display the help menu
-display_help() {
-    echo "Usage: $0 [options]"
-    echo
-    echo "   -d domains    Set the target domains. This can be a single domain, a"
-    echo "                 comma-separated list of domains, or a path to a file with"
-    echo "                 one domain per line."
-    echo "   -x exclude    Exclude specific domains/subdomains."
-    echo "   -e            Perform subdomain enumeration."
-    echo "   -p            Use ParamSpider for discovering parameters on live subdomains."
-    echo "   -h            Display this help menu."
-    echo
+# Help message
+help_message() {
+    echo -e "Usage: $0 [-p|-k] <target_domain>\n"
+    echo "Options:"
+    echo "  -p   Use ParamSpider (default)"
+    echo "  -k   Use Katana"
+    echo "  -h   Display this help message"
+    echo -e "\nAvailable spider tools: paramspider, katana"
 }
 
-# Variables to decide if screenshots should be taken and if ParamSpider should be used
-use_paramspider=false
-perform_enum=false
+spider_tool="paramspider"  # Default spider tool
 
-while getopts "hed:x:p" opt; do
+while getopts ":pkh" opt; do
   case $opt in
-    h)
-      display_help
-      exit 0
-      ;;
-    e)
-      perform_enum=true
-      ;;
-    d)
-      if [ -f "$OPTARG" ]; then
-        mapfile -t targets < $OPTARG
-      else
-        IFS=',' read -ra targets <<< "$OPTARG"
-      fi
-      ;;
-    x)
-      exclude=$OPTARG
-      ;;
-    p)
-      use_paramspider=true
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      display_help
-      exit 1
-      ;;
-    :)
-      echo "Option -$OPTARG requires an argument." >&2
-      display_help
-      exit 1
-      ;;
+    p) spider_tool="paramspider" ;;
+    k) spider_tool="katana" ;;
+    h) help_message
+       exit 0 ;;
+    \?) echo "Invalid option: -$OPTARG" >&2
+        help_message
+        exit 1 ;;
   esac
 done
+shift $((OPTIND - 1))
 
-# Debug line:
-echo "Target domains: ${targets[@]}"
-
-if [ -z "${targets[*]}" ]; then
-  echo "Please specify the target domain using the -d option."
-  exit 1
+if [ "$#" -ne 1 ]; then
+    help_message
+    exit 1
 fi
 
-start_time=$(date +%s)
+target="$1"
+timestamp=$(date '+%Y%m%d%H%M')
+output_dir="scan/$target/$timestamp"
+mkdir -p "$output_dir"
 
-# Loop over each target domain
-for target in "${targets[@]}"; do
+# Function to display colored messages
+color_echo() {
+    local color="$1"
+    shift
+    echo -e "\033[${color}m$@\033[0m"
+}
 
-  timestamp=$(date '+%Y%m%d%H%M')
-  output_dir="scan/$target/$timestamp"
-  mkdir -p $output_dir
+echo ""
+color_echo 33 "[ ! ] Executing $spider_tool, please wait..."
 
-  # Check if -e option is selected, then perform enumeration
-  if $perform_enum ; then
-    # Subdomain Enumeration
-    subfinder -d $target -o $output_dir/subs.txt
-    assetfinder -subs-only $target > $output_dir/asset.txt
+if [ "$spider_tool" == "paramspider" ]; then
+    # Run ParamSpider
+    python3 ~/ParamSpider/paramspider.py -d "$target" --level high --quiet -o "$output_dir/parameter.txt"
+elif [ "$spider_tool" == "katana" ]; then
+    # Run Katana
+    katana -u "$target" -o "$output_dir/parameter.txt" &
+else
+    echo "Invalid spider tool: $spider_tool"
+    exit 1
+fi
 
-    # Consolidating All Enumerated/Collected subdomains into one file
-    cat $output_dir/subs.txt $output_dir/asset.txt | sort -u > $output_dir/subdomains.txt
-    
-    # Count the number of subdomains found and print
-    num_subdomains=$(wc -l < $output_dir/subdomains.txt)
-    echo -e "${GREEN}[+] Collected $num_subdomains subdomains.${NC}"
+# Run getJS
+getJS_output="$output_dir/getjs_output.txt"
+getJS --url "$target" --complete > "$getJS_output"
 
-    # Checking which subdomains are active
-    httpx -l $output_dir/subdomains.txt -threads 200 -title -status-code -o $output_dir/sub_statuscode_title.txt
+wait
 
-    # Extract only domains and save to another file
-    awk '{print $1}' $output_dir/sub_statuscode_title.txt | sed -e 's/https\?:\/\///' | sed -e 's/\/.*$//' > $output_dir/alive.txt
+# Add some space for better formatting
+echo
 
-    # Count the number of live subdomains found and print
-    num_live_subdomains=$(wc -l < $output_dir/alive.txt)
-    echo -e "${GREEN}[+] Found $num_live_subdomains live subdomains.${NC}"
+# Display discovered vulnerabilities in a table-like format
+color_echo 32 "Count of potential vulnerable URLs discovered:"
+echo ""
+printf "%-15s %-25s\n" "Vulnerability" "URLs discovered"
+printf "%-15s %-25s\n" "-------------" "---------------"
 
-    # Remove the individual subs.txt and asset.txt files
-    rm $output_dir/subs.txt
-    rm $output_dir/asset.txt
-    rm $output_dir/subdomains.txt
+# Use gf to find common patterns
+mkdir -p "$output_dir/paramspider/vuln"
+patterns=("lfi" "rce" "redirect" "sqli" "ssrf" "ssti" "xss" "idor" "debug_logic")
 
-  fi
-
-  # If ParamSpider option is selected, run ParamSpider on each live subdomain
-  if $use_paramspider ; then
-    # Check if ParamSpider is already cloned
-    home_dir="$HOME"
-    if [ ! -d "$home_dir/ParamSpider" ]; then
-      echo "Cloning ParamSpider..."
-      git clone https://github.com/devanshbatham/ParamSpider.git "$home_dir/ParamSpider"
+for pattern in "${patterns[@]}"; do
+    matched_lines=$(gf "$pattern" < "$output_dir/parameter.txt")
+    if [ ! -z "$matched_lines" ]; then
+        echo "$matched_lines" > "$output_dir/paramspider/vuln/gf_${pattern}.txt"
+        count=$(echo "$matched_lines" | wc -l)
+        printf "%-15s %-25s\n" "$pattern" "$count"
     fi
-    
-    # Create a directory for ParamSpider output
-    paramspider_output_dir="$output_dir/paramspider"
-    mkdir -p $paramspider_output_dir
-    
-    # Run ParamSpider on each live subdomain
-    while read -r subdomain; do
-      echo "Running ParamSpider on $subdomain"
-      python3 "$home_dir/ParamSpider/paramspider.py" -d "$subdomain" --exclude png,jpg,gif,jpeg,swf,woff,gif,svg --level high --quiet -o "$paramspider_output_dir/$subdomain.txt"
-    done < $output_dir/alive.txt
-
-    # Use gf to find common patterns
-    mkdir -p "$paramspider_output_dir/vuln"
-    for pattern in lfi rce redirect sqli ssrf ssti xss idor; do
-      cat $paramspider_output_dir/*.txt | gf $pattern > "$paramspider_output_dir/vuln/gf_${pattern}.txt"
-    done
-  fi
 done
 
-end_time=$(date +%s)
-runtime=$((end_time-start_time))
+# Count the number of JS files discovered
+js_count=$(grep -Eo 'https?://[^/]+/[^ ]+\.js' "$getJS_output" | wc -l)
+echo ""
+color_echo 32 "JavaScript files discovered: $js_count"
 
-echo "Scan completed for ${targets[@]}"
-echo "Total scan time: $runtime seconds"
+# Add some space for better formatting
+echo
+
+color_echo 32 "[+] Scan complete. Results saved in $output_dir"
