@@ -37,11 +37,17 @@ Azazel is a bash script designed to automate the discovery of vulnerabilities an
 git clone https://github.com/your-username/azazel.git
 cd azazel
 ```
-2. Make the script executable:
+2. Make the script and the installation executable:
 ```bash
 chmod +x azazel.sh
+chmod +x install.sh
 ```
-3. Run the script with appropriate options and target domain:
+3. Run the installation script:
+```bash
+./install.sh
+```
+
+4. Run the script with appropriate options and target domain:
 ```bash
 ./azazel.sh -p example.com
 ```
