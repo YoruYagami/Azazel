@@ -6,28 +6,31 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-if ! command -v assetfiner &> /dev/null; then
-    echo -e "${RED}Installing assetfinder now${NC}"
-    go install github.com/tomnomnom/assetfinder@latest
-    echo -e "${GREEN}assetfinder has been installed${NC}"
+# Install ParamSpider
+if [[ ! -d "$HOME/ParamSpider" ]]; then
+    echo -e "${RED}Installing ParamSpider...${NC}"
+    git clone https://github.com/devanshbatham/ParamSpider.git "$HOME/ParamSpider"
+    echo -e "${GREEN}ParamSpider has been installed.${NC}"
 else
-    echo -e "${GREEN}assetfinder is already installed${NC}"
+    echo -e "${GREEN}ParamSpider is already installed.${NC}"
 fi
 
-if ! command -v httpx &> /dev/null; then
-    echo -e "${RED}Installing httpx now${NC}"
-    go install github.com/projectdiscovery/httpx/cmd/httpx@latest
-    echo -e "${GREEN}httpx has been installed${NC}"
+# Install getJS
+if ! command -v getJS &> /dev/null; then
+    echo -e "${RED}Installing getJS...${NC}"
+    go install github.com/003random/getJS@latest
+    echo -e "${GREEN}getJS has been installed.${NC}"
 else
-    echo -e "${GREEN}httpx is already installed${NC}"
+    echo -e "${GREEN}getJS is already installed.${NC}"
 fi
 
-if ! command -v subfinder &> /dev/null; then
-    echo -e "${RED}Installing subfinder now${NC}"
-    go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
-    echo -e "${GREEN}subfinder has been installed${NC}"
+# Install Katana
+if ! command -v katana &> /dev/null; then
+    echo -e "${RED}Installing Katana...${NC}"
+    go install github.com/projectdiscovery/katana/cmd/katana@latest
+    echo -e "${GREEN}Katana has been installed.${NC}"
 else
-    echo -e "${GREEN}subfinder is already installed${NC}"
+    echo -e "${GREEN}Katana is already installed.${NC}"
 fi
 
 # Set the destination directory for gf-patterns
@@ -60,4 +63,5 @@ do
 done
 
 echo -e "${GREEN}All tasks have been completed successfully.${NC}"
+
 
