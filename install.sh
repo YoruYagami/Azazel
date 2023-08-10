@@ -15,6 +15,15 @@ else
     echo -e "${GREEN}ParamSpider is already installed.${NC}"
 fi
 
+# Install nikto
+if ! command -v nikto &> /dev/null; then
+    echo -e "${RED}Installing nikto...${NC}"
+    sudo apt install nikto
+    echo -e "${GREEN}nitko has been installed.${NC}"
+else
+    echo -e "${GREEN}nikto is already installed.${NC}"
+fi
+
 # Install getJS
 if ! command -v getJS &> /dev/null; then
     echo -e "${RED}Installing getJS...${NC}"
