@@ -2,20 +2,15 @@
 
 # Azazel
 
-Azazel is a versatile bash script designed to help you discover vulnerabilities and potential security issues in web applications using various tools and pattern matching.
+Azazel is a bash script designed to automate the discovery of vulnerabilities and security issues in web applications. It utilizes different spidering tools (paramspider or katana) and pattern matching techniques to gather information and identify potential risks.
 
 ## Table of Contents
 
-- [Introduction](#introduction)
 - [Usage](#usage)
 - [Installation](#installation)
 - [Ouput](#output)
 - [Disclaimer](#disclaimer).
 - [License](#license)
-
-## Introduction
-
-Azazel is a bash script designed to automate the discovery of vulnerabilities and security issues in web applications. It utilizes different spidering tools (paramspider or katana) and pattern matching techniques to gather information and identify potential risks.
 
 ```bash
 Usage: ./azazel.sh [./azazel.sh -d https://target.com -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]
