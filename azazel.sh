@@ -2,6 +2,7 @@
 
 template=""  # Default template
 rate_limit=""
+spider_tool="paramspider"  # Default spider tool
 katana_rate_limit=""
 proxy=""
 nikto_scan=false
@@ -23,8 +24,6 @@ help_message() {
     echo -e "\nAvailable spider tools: paramspider, katana"
     echo
 }
-
-spider_tool="paramspider"  # Default spider tool
 
 while :; do
     case $1 in
