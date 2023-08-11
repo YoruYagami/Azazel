@@ -17,6 +17,24 @@ Azazel is a versatile bash script designed to help you discover vulnerabilities 
 
 Azazel is a bash script designed to automate the discovery of vulnerabilities and security issues in web applications. It utilizes different spidering tools (paramspider or katana) and pattern matching techniques to gather information and identify potential risks.
 
+```bash
+Usage: ./azazel.sh [./azazel.sh -d https://target.com -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]
+
+Options:
+  -p                 Use ParamSpider (default)
+  -k                 Use Katana
+  -n                 Perform an initial scan with Nikto
+  -d                 Specify the target domain
+  -t                 Use Nuclei with a specific template
+  --nrl              Set Nuclei rate limit (e.g., --nrl 10, default is 150)
+  --krl              Set Katana rate limit (e.g., --krl 10, default is 150)
+  --proxy            Set proxy for selected tools (e.g., --proxy http://127.0.0.1:8080)
+  -h                 Display this help message
+
+Available spider tools: paramspider, katana
+
+```
+
 ## Usage
 
 ```bash
@@ -143,26 +161,6 @@ JavaScript files discovered: 0
 4. Output Management: All scan results are organized and saved in timestamped directories for easier access.
 5. Visualization: Displays a count of potential vulnerable URLs discovered in a table-like format.
 6. Proxy Support: The script can use a proxy for the scanning, enhancing the user's privacy and ability to bypass certain access controls.
-
-## Options
-
-```bash
-Usage: ./azazel.sh [./azazel.sh -d https://target.com -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]
-
-Options:
-  -p                 Use ParamSpider (default)
-  -k                 Use Katana
-  -n                 Perform an initial scan with Nikto
-  -d                 Specify the target domain
-  -t                 Use Nuclei with a specific template
-  --nrl              Set Nuclei rate limit (e.g., --nrl 10, default is 150)
-  --krl              Set Katana rate limit (e.g., --krl 10, default is 150)
-  --proxy            Set proxy for selected tools (e.g., --proxy http://127.0.0.1:8080)
-  -h                 Display this help message
-
-Available spider tools: paramspider, katana
-
-```
 
 ## Installation
 1. Clone this repository to your local machine:
