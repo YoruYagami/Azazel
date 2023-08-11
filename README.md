@@ -57,17 +57,7 @@ Available spider tools: paramspider, katana
                 projectdiscovery.io                                                                                                                                                                                                                                                                                  
                                                                                                                                                                                                                                                                                                                      
 [INF] Current katana version v1.0.3 (latest)                                                                                                                                                                                                                                                                         
-[INF] Started standard crawling for => http://testphp.vulnweb.com/                                                                                                                                                                                                                                                   
-http://testphp.vulnweb.com/                                                                                                                                                                                                                                                                                          
-http://testphp.vulnweb.com/hpp/                                                                                                                                                                                                                                                                                      
-http://testphp.vulnweb.com/login.php                                                                                                                                                                                                                                                                                 
-http://testphp.vulnweb.com/high                                                                                                                                                                                                                                                                                      
-http://testphp.vulnweb.com/privacy.php                                                                                                                                                                                                                                                                               
-http://testphp.vulnweb.com/style.css                                                                                                                                                                                                                                                                                 
-http://testphp.vulnweb.com/Mod_Rewrite_Shop/                                                                                                                                                                                                                                                                         
-http://testphp.vulnweb.com/AJAX/index.php                                                                                                                                                                                                                                                                            
-http://testphp.vulnweb.com/guestbook.php                                                                                                                                                                                                                                                                             
-http://testphp.vulnweb.com/hpp/?pp=12                                                                                                                                                                                                                                                                                
+[INF] Started standard crawling for => http://testphp.vulnweb.com/                                                                                                                    
 http://testphp.vulnweb.com/cart.php                                          
 http://testphp.vulnweb.com/userinfo.php                                      
 http://testphp.vulnweb.com/disclaimer.php                                    
@@ -92,31 +82,7 @@ http://testphp.vulnweb.com/Mod_Rewrite_Shop/RateProduct-2.html
 http://testphp.vulnweb.com/artists.php?artist=3                              
 http://testphp.vulnweb.com/listproducts.php?cat=3                            
 http://testphp.vulnweb.com/listproducts.php?cat=2                            
-http://testphp.vulnweb.com/listproducts.php?cat=1                            
-http://testphp.vulnweb.com/listproducts.php?artist=1                         
-http://testphp.vulnweb.com/product.php?pic=5                                 
-http://testphp.vulnweb.com/showimage.php?file=./pictures/2.jpg&size=160                                                                                   
-http://testphp.vulnweb.com/showimage.php?file=./pictures/3.jpg&size=160                                                                                   
-http://testphp.vulnweb.com/showimage.php?file=./pictures/1.jpg&size=160                                                                                   
-http://testphp.vulnweb.com/showimage.php?file=./pictures/5.jpg                                                                                            
-http://testphp.vulnweb.com/product.php?pic=7                                 
-http://testphp.vulnweb.com/showimage.php?file=./pictures/4.jpg&size=160                                                                                   
-http://testphp.vulnweb.com/showimage.php?file=./pictures/5.jpg&size=160                                                                                   
-http://testphp.vulnweb.com/showimage.php?file=./pictures/7.jpg&size=160                                                                                   
-http://testphp.vulnweb.com/showimage.php?file=./pictures/7.jpg                                                                                            
-http://testphp.vulnweb.com/showimage.php?file=./pictures/4.jpg                                                                                            
-http://testphp.vulnweb.com/showimage.php?file=./pictures/3.jpg                                                                                            
-http://testphp.vulnweb.com/product.php?pic=3                                 
-http://testphp.vulnweb.com/showimage.php?file=./pictures/2.jpg                                                                                            
-http://testphp.vulnweb.com/product.php?pic=4                                 
-http://testphp.vulnweb.com/showimage.php?file=./pictures/1.jpg                                                                                            
-http://testphp.vulnweb.com/product.php?pic=1                                 
-http://testphp.vulnweb.com/product.php?pic=2                                 
-http://testphp.vulnweb.com/showimage.php?file=./pictures/6.jpg                                                                                            
-http://testphp.vulnweb.com/showimage.php?file=./pictures/6.jpg&size=160                                                                                   
-http://testphp.vulnweb.com/listproducts.php?artist=3                         
-http://testphp.vulnweb.com/product.php?pic=6                                 
-http://testphp.vulnweb.com/listproducts.php?artist=2                         
+...                
 
 Count of potential vulnerable URLs discovered:                               
 
