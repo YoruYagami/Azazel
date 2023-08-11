@@ -6,12 +6,14 @@ Azazel is a bash script designed to automate the discovery of vulnerabilities an
 
 ## Table of Contents
 
+- [Options](#options)
 - [Usage](#usage)
 - [Installation](#installation)
 - [Ouput](#output)
 - [Disclaimer](#disclaimer).
 - [License](#license)
 
+## Options
 ```bash
 Usage: ./azazel.sh [./azazel.sh -d https://target.com -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]
 
