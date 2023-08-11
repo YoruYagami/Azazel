@@ -136,12 +136,32 @@ JavaScript files discovered: 0
 
 
 ```
+## Key Features
+1. Parameter Parsing: The script accepts a range of command-line arguments that specify the desired action, such as target domain and scanning tools to use.
+2. Multi-tool Integration: Incorporates various popular web scanning tools
+3. Additional Checks: The script also has built-in functionalities to check for the presence of "robots.txt", "sitemap.xml", and specific HTTP headers.
+4. Output Management: All scan results are organized and saved in timestamped directories for easier access.
+5. Visualization: Displays a count of potential vulnerable URLs discovered in a table-like format.
+6. Proxy Support: The script can use a proxy for the scanning, enhancing the user's privacy and ability to bypass certain access controls.
+
 ## Options
 
 ```bash
-    -p: Use ParamSpider (default)
-    -k: Use Katana
-    -h: Display help message
+Usage: ./azazel.sh [./azazel.sh -d https://target.com -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]
+
+Options:
+  -p                 Use ParamSpider (default)
+  -k                 Use Katana
+  -n                 Perform an initial scan with Nikto
+  -d                 Specify the target domain
+  -t                 Use Nuclei with a specific template
+  --nrl              Set Nuclei rate limit (e.g., --nrl 10, default is 150)
+  --krl              Set Katana rate limit (e.g., --krl 10, default is 150)
+  --proxy            Set proxy for selected tools (e.g., --proxy http://127.0.0.1:8080)
+  -h                 Display this help message
+
+Available spider tools: paramspider, katana
+
 ```
 
 ## Installation
@@ -152,8 +172,7 @@ cd azazel
 ```
 2. Make the script and the installation executable:
 ```bash
-chmod +x azazel.sh
-chmod +x install.sh
+chmod +x install.sh && chmod +x azazel.sh
 ```
 3. Run the installation script:
 ```bash
@@ -162,7 +181,7 @@ chmod +x install.sh
 
 4. Run the script with appropriate options and target domain:
 ```bash
-./azazel.sh -p example.com
+./azazel.sh -d https://target.com -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080
 ```
 
 ## Output
