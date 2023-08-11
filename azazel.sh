@@ -129,9 +129,9 @@ check_additional_info() {
     # Check X-Frame-Options header
     header=$(curl -s -I "$target" | grep -i "X-Frame-Options")
     if [[ -z $header ]]; then
-        color_echo 32 "[+] Target vulnerable to Clickjacking!."
+        color_echo 31 "[-] Target vulnerable to Clickjacking!."
     else
-        color_echo 31 "[-] Anti-clickjacking X-Frame-Options header detected."
+        color_echo 32 "[+] Anti-clickjacking X-Frame-Options header detected."
     fi
 
     echo
@@ -139,9 +139,9 @@ check_additional_info() {
     # Check for HttpOnly flag
     cookie_header=$(curl -s -I "$target" | grep -i "Set-Cookie")
     if [[ $cookie_header == *"; HttpOnly"* ]]; then
-        color_echo 31 "[-] HttpOnly flag is set on the cookie."
+        color_echo 32 "[+] HttpOnly flag is set on the cookie."
     else
-        color_echo 32 "[+] HttpOnly flag is missing from the cookie!."
+        color_echo 31 "[-] HttpOnly flag is missing from the cookie!."
     fi
 
     echo
@@ -149,12 +149,12 @@ check_additional_info() {
     # Check for Content-Security-Policy (CSP) header
     csp_header=$(curl -s -I "$target" | grep -i "Content-Security-Policy")
     if [[ -z $csp_header ]]; then
-        color_echo 32 "[+] Content-Security-Policy (CSP) header is missing!."
+        color_echo 31 "[-] Content-Security-Policy (CSP) header is missing!."
     else
         if [[ $csp_header == *'unsafe-inline'* ]] || [[ $csp_header == *'unsafe-eval'* ]]; then
-            color_echo 32 "[+] CSP contains unsafe directives (unsafe-inline or unsafe-eval)."
+            color_echo 31 "[+] CSP contains unsafe directives (unsafe-inline or unsafe-eval)."
         else
-            color_echo 31 "[-] Proper CSP header detected."
+            color_echo 32 "[-] Proper CSP header detected."
         fi
     fi
 
