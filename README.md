@@ -172,21 +172,18 @@ The script will create a directory named scan with a subdirectory for each targe
 scan
 └── http:
     └── testphp.vulnweb.com
-        └── 202308091233
+        └── 202308111034
             ├── getjs_output.txt
-            ├── parameter.txt
-            └── paramspider
-                └── vuln
-                    ├── gf_debug_logic.txt
-                    ├── gf_idor.txt
-                    ├── gf_lfi.txt
-                    ├── gf_redirect.txt
-                    ├── gf_sqli.txt
-                    ├── gf_ssrf.txt
-                    ├── gf_ssti.txt
-                    └── gf_xss.txt
+            ├── nuclei_results.txt
+            ├── paramspider
+            │   └── vuln
+            │       ├── gf_lfi.txt
+            │       ├── gf_redirect.txt
+            │       ├── gf_ssrf.txt
+            │       └── gf_xss.txt
+            └── urls.txt
 
-6 directories, 10 files
+6 directories, 7 files
 ```
 
 ## Disclaimer
