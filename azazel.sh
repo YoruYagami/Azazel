@@ -8,7 +8,8 @@ nikto_scan=false
 target=""
 
 help_message() {
-    echo -e "Usage: $0 [-p|-k|-n|-t template|--nrl nuclei_rate_limit|--krl katana_rate_limit|--proxy proxy|-d domain]\n"
+    echo
+    echo -e "Usage: $0 [./azazel.sh -d "https://target.com" -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]\n"
     echo "Options:"
     echo "  -p                 Use ParamSpider (default)"
     echo "  -k                 Use Katana"
@@ -20,6 +21,7 @@ help_message() {
     echo "  --proxy            Set proxy for selected tools (e.g., --proxy http://127.0.0.1:8080)"
     echo "  -h                 Display this help message"
     echo -e "\nAvailable spider tools: paramspider, katana"
+    echo
 }
 
 spider_tool="paramspider"  # Default spider tool
@@ -88,6 +90,79 @@ color_echo() {
     echo -e "\033[${color}m$@\033[0m"
 }
 
+# Essentials Check
+check_additional_info() {
+    local target="$1"
+    local output_dir="$2"
+
+    echo
+
+    # Check /robots.txt
+    response=$(curl -s -o /dev/null -w "%{http_code}" "$target/robots.txt")
+    if [[ $response -eq 200 ]]; then
+        color_echo 32 "[+] /robots.txt found. Saving..."
+        echo
+        # Get and display the content of robots.txt
+        robots_content=$(curl -s "$target/robots.txt")
+        echo "$robots_content"
+        echo "$robots_content" > "$output_dir/robots.txt"
+    else
+        color_echo 31 "[-] /robots.txt not found."
+    fi
+
+    echo
+
+    # Check /sitemap.xml
+    response=$(curl -s -o /dev/null -w "%{http_code}" "$target/sitemap.xml")
+    if [[ $response -eq 200 ]]; then
+        color_echo 32 "[+] /sitemap.xml found. Saving..."
+        
+        # Save the content of sitemap.xml without displaying on the terminal
+        sitemap_content=$(curl -s "$target/sitemap.xml")
+        echo "$sitemap_content" > "$output_dir/sitemap.xml"
+    else
+        color_echo 31 "[-] /sitemap.xml not found."
+    fi
+
+    echo
+
+    # Check X-Frame-Options header
+    header=$(curl -s -I "$target" | grep -i "X-Frame-Options")
+    if [[ -z $header ]]; then
+        color_echo 32 "[+] Target vulnerable to Clickjacking!."
+    else
+        color_echo 31 "[-] Anti-clickjacking X-Frame-Options header detected."
+    fi
+
+    echo
+
+    # Check for HttpOnly flag
+    cookie_header=$(curl -s -I "$target" | grep -i "Set-Cookie")
+    if [[ $cookie_header == *"; HttpOnly"* ]]; then
+        color_echo 31 "[-] HttpOnly flag is set on the cookie."
+    else
+        color_echo 32 "[+] HttpOnly flag is missing from the cookie!."
+    fi
+
+    echo
+
+    # Check for Content-Security-Policy (CSP) header
+    csp_header=$(curl -s -I "$target" | grep -i "Content-Security-Policy")
+    if [[ -z $csp_header ]]; then
+        color_echo 32 "[+] Content-Security-Policy (CSP) header is missing!."
+    else
+        if [[ $csp_header == *'unsafe-inline'* ]] || [[ $csp_header == *'unsafe-eval'* ]]; then
+            color_echo 32 "[+] CSP contains unsafe directives (unsafe-inline or unsafe-eval)."
+        else
+            color_echo 31 "[-] Proper CSP header detected."
+        fi
+    fi
+
+    echo
+}
+
+check_additional_info "$target" "$output_dir"
+
 # If nikto_scan is true, run Nikto
 if $nikto_scan; then
     color_echo 33 "[ ! ] Executing Nikto scan, please wait..."
@@ -143,8 +218,9 @@ done
 
 # Count the number of JS files discovered
 js_count=$(grep -Eo 'https?://[^/]+/[^ ]+\.js' "$getJS_output" | wc -l)
-echo ""
+echo
 color_echo 32 "JavaScript files discovered: $js_count"
+echo
 
 # Execute nuclei if the template is provided
 if [ ! -z "$template" ]; then
