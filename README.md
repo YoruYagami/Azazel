@@ -20,91 +20,120 @@ Azazel is a bash script designed to automate the discovery of vulnerabilities an
 ## Usage
 
 ```bash
-./azazel.sh -k -t ~/fuzzing-templates/lfi --proxy http://127.0.0.1:8080 -d "http://testphp.vulnweb.com/"                                                                                  ✔     
+     ~/hacking/github/Azazel  on    main +2 !1  ./azazel.sh -d "http://testphp.vulnweb.com/" -k --krl 50 -t ~/fuzzing-templates/xss/reflected-xss.yaml --nrl 5 --proxy http://127.0.0.1:8080                                           ✔                                                                   
+                                                                                                                                                                                                                                                                                                                     
+[-] /robots.txt not found.                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                     
+[-] /sitemap.xml not found.                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                                     
+[+] Target vulnerable to Clickjacking!.                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                     
+[+] HttpOnly flag is missing from the cookie!.                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                     
+[+] Content-Security-Policy (CSP) header is missing!.                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                     
+[ ! ] Executing katana, please wait...                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                     
+   __        __                                                                                                                                                                                                                                                                                                      
+  / /_____ _/ /____ ____  ___ _                                                                                                                                                                                                                                                                                      
+ /  '_/ _  / __/ _  / _ \/ _  /                                                                                                                                                                                                                                                                                      
+/_/\_\\_,_/\__/\_,_/_//_/\_,_/                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                     
+                projectdiscovery.io                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                     
+[INF] Current katana version v1.0.3 (latest)                                                                                                                                                                                                                                                                         
+[INF] Started standard crawling for => http://testphp.vulnweb.com/                                                                                                                                                                                                                                                   
+http://testphp.vulnweb.com/                                                                                                                                                                                                                                                                                          
+http://testphp.vulnweb.com/hpp/                                                                                                                                                                                                                                                                                      
+http://testphp.vulnweb.com/login.php                                                                                                                                                                                                                                                                                 
+http://testphp.vulnweb.com/high                                                                                                                                                                                                                                                                                      
+http://testphp.vulnweb.com/privacy.php                                                                                                                                                                                                                                                                               
+http://testphp.vulnweb.com/style.css                                                                                                                                                                                                                                                                                 
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/                                                                                                                                                                                                                                                                         
+http://testphp.vulnweb.com/AJAX/index.php                                                                                                                                                                                                                                                                            
+http://testphp.vulnweb.com/guestbook.php                                                                                                                                                                                                                                                                             
+http://testphp.vulnweb.com/hpp/?pp=12                                                                                                                                                                                                                                                                                
+http://testphp.vulnweb.com/cart.php                                          
+http://testphp.vulnweb.com/userinfo.php                                      
+http://testphp.vulnweb.com/disclaimer.php                                    
+http://testphp.vulnweb.com/index.php                                         
+http://testphp.vulnweb.com/signup.php                                        
+http://testphp.vulnweb.com/categories.php                                    
+http://testphp.vulnweb.com/artists.php                                       
+http://testphp.vulnweb.com/AJAX/styles.css                                   
+http://testphp.vulnweb.com/hpp/params.php?p=valid&pp=12                      
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/web-camera-a4tech/2/                                                                                  
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/color-printer/3/                                                                                      
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/network-attached-storage-dlink/1/                                                                     
+http://testphp.vulnweb.com/listproducts.php?cat=4                            
+http://testphp.vulnweb.com/artists.php?artist=1                              
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/BuyProduct-1/                    
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/BuyProduct-2/                    
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/RateProduct-1.html                                                                                            
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/BuyProduct-3/                    
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/RateProduct-3.html                                                                                            
+http://testphp.vulnweb.com/artists.php?artist=2                              
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/RateProduct-2.html                                                                                            
+http://testphp.vulnweb.com/artists.php?artist=3                              
+http://testphp.vulnweb.com/listproducts.php?cat=3                            
+http://testphp.vulnweb.com/listproducts.php?cat=2                            
+http://testphp.vulnweb.com/listproducts.php?cat=1                            
+http://testphp.vulnweb.com/listproducts.php?artist=1                         
+http://testphp.vulnweb.com/product.php?pic=5                                 
+http://testphp.vulnweb.com/showimage.php?file=./pictures/2.jpg&size=160                                                                                   
+http://testphp.vulnweb.com/showimage.php?file=./pictures/3.jpg&size=160                                                                                   
+http://testphp.vulnweb.com/showimage.php?file=./pictures/1.jpg&size=160                                                                                   
+http://testphp.vulnweb.com/showimage.php?file=./pictures/5.jpg                                                                                            
+http://testphp.vulnweb.com/product.php?pic=7                                 
+http://testphp.vulnweb.com/showimage.php?file=./pictures/4.jpg&size=160                                                                                   
+http://testphp.vulnweb.com/showimage.php?file=./pictures/5.jpg&size=160                                                                                   
+http://testphp.vulnweb.com/showimage.php?file=./pictures/7.jpg&size=160                                                                                   
+http://testphp.vulnweb.com/showimage.php?file=./pictures/7.jpg                                                                                            
+http://testphp.vulnweb.com/showimage.php?file=./pictures/4.jpg                                                                                            
+http://testphp.vulnweb.com/showimage.php?file=./pictures/3.jpg                                                                                            
+http://testphp.vulnweb.com/product.php?pic=3                                 
+http://testphp.vulnweb.com/showimage.php?file=./pictures/2.jpg                                                                                            
+http://testphp.vulnweb.com/product.php?pic=4                                 
+http://testphp.vulnweb.com/showimage.php?file=./pictures/1.jpg                                                                                            
+http://testphp.vulnweb.com/product.php?pic=1                                 
+http://testphp.vulnweb.com/product.php?pic=2                                 
+http://testphp.vulnweb.com/showimage.php?file=./pictures/6.jpg                                                                                            
+http://testphp.vulnweb.com/showimage.php?file=./pictures/6.jpg&size=160                                                                                   
+http://testphp.vulnweb.com/listproducts.php?artist=3                         
+http://testphp.vulnweb.com/product.php?pic=6                                 
+http://testphp.vulnweb.com/listproducts.php?artist=2                         
 
-[ ! ] Executing katana, please wait...                                                                                                                                                                                                                 
-                                                                                                                                                                                                                                                       
-   __        __                                                                                                                                                                                                                                        
-  / /_____ _/ /____ ____  ___ _                                                                                                                                                                                                                        
- /  '_/ _  / __/ _  / _ \/ _  /                                                                                                                                                                                                                        
-/_/\_\\_,_/\__/\_,_/_//_/\_,_/                                                                                                                                                                                                                         
-                                                                                                                                                                                                                                                       
-                projectdiscovery.io                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                                       
-[INF] Current katana version v1.0.3 (latest)                                                                                                                                                                                                           
-[INF] Started standard crawling for => http://testphp.vulnweb.com/                                                                                                                                                                                     
-http://testphp.vulnweb.com/                                                                                                                                                                                                                            
-http://testphp.vulnweb.com/Mod_Rewrite_Shop/                                                                                                                                                                                                           
-http://testphp.vulnweb.com/style.css                                                                                                                                                                                                                   
-http://testphp.vulnweb.com/AJAX/index.php                                                                                                                                                                                                              
-http://testphp.vulnweb.com/high                                                                                                                                                                                                                        
-http://testphp.vulnweb.com/hpp/                                                                                                                                                                                                                        
-http://testphp.vulnweb.com/privacy.php                                                                                                                                                                                                                 
-http://testphp.vulnweb.com/login.php                                                                                                                                                                                                                   
-http://testphp.vulnweb.com/guestbook.php                                                                                                                                                                                                               
-http://testphp.vulnweb.com/AJAX/styles.css                                                                                                                                                                                                             
-http://testphp.vulnweb.com/userinfo.php                                                                                                                                                                                                                
-http://testphp.vulnweb.com/cart.php                                                                                                                                                                                                                    
-http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/color-printer/3/                                                                                                                                                                                   
-http://testphp.vulnweb.com/hpp/?pp=12                                                                                                                                                                                                                  
-http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/web-camera-a4tech/2/                                                                                                                                                                               
-http://testphp.vulnweb.com/signup.php                                                                                                                                                                                                                  
-http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/network-attached-storage-dlink/1/                                                                                                                                                                  
-http://testphp.vulnweb.com/categories.php                                                                                                                                                                                                              
-http://testphp.vulnweb.com/artists.php                                                                                                                                                                                                                 
-http://testphp.vulnweb.com/index.php                                                                                                                                                                                                                   
-http://testphp.vulnweb.com/disclaimer.php                                                                                                                                                                                                              
-http://testphp.vulnweb.com/Mod_Rewrite_Shop/BuyProduct-1/                                                                                                                                                                                              
-http://testphp.vulnweb.com/Mod_Rewrite_Shop/RateProduct-1.html                                                                                                                                                                                         
-http://testphp.vulnweb.com/listproducts.php?cat=2                                                                                                                                                                                                      
-http://testphp.vulnweb.com/Mod_Rewrite_Shop/RateProduct-2.html                                                                                                                                                                                         
-http://testphp.vulnweb.com/listproducts.php?cat=3                                                                                                                                                                                                      
-http://testphp.vulnweb.com/artists.php?artist=1                                                                                                                                                                                                        
-http://testphp.vulnweb.com/listproducts.php?cat=1                                                                                                                                                                                                      
-http://testphp.vulnweb.com/artists.php?artist=3                                                                                                                                                                                                        
-http://testphp.vulnweb.com/listproducts.php?cat=4                                                                                                                                                                                                      
-http://testphp.vulnweb.com/artists.php?artist=2
+Count of potential vulnerable URLs discovered:                               
 
+Vulnerability   URLs discovered                                              
+-------------   ---------------                                              
+lfi             18                                                           
+redirect        14                                                           
+ssrf            14                                                           
+xss             2                                                            
 
-Count of potential vulnerable URLs discovered:
+JavaScript files discovered: 0      
+                                        
+[ ! ] Executing nuclei with template /home/kali/fuzzing-templates/xss/reflected-xss.yaml, please wait...                                                  
 
-Vulnerability   URLs discovered          
--------------   ---------------          
-lfi             18                       
-redirect        14                       
-ssrf            14                       
-xss             2                        
+                     __     _                                                
+   ____  __  _______/ /__  (_)                                               
+  / __ \/ / / / ___/ / _ \/ /                                                
+ / / / / /_/ / /__/ /  __/ /                                                 
+/_/ /_/\__,_/\___/_/\___/_/   v2.9.10                                        
 
-JavaScript files discovered: 0
-[ ! ] Executing nuclei with template /home/kali/fuzzing-templates/lfi, please wait...
+                projectdiscovery.io                                          
 
-                     __     _
-   ____  __  _______/ /__  (_)
-  / __ \/ / / / ___/ / _ \/ /
- / / / / /_/ / /__/ /  __/ /
-/_/ /_/\__,_/\___/_/\___/_/   v2.9.10
+[INF] Current nuclei version: v2.9.10 (latest)                               
+[INF] Current nuclei-templates version: v9.6.0 (latest)                      
+[INF] New templates added in latest release: 33                              
+[INF] Templates loaded for current scan: 1                                   
+[INF] Targets loaded for current scan: 18                                    
+[reflected-xss] [http] [medium] http://testphp.vulnweb.com/listproducts.php?cat=4'"><30358                                                                
+[reflected-xss] [http] [medium] http://testphp.vulnweb.com/listproducts.php?cat=1'"><30358                                                                
+[reflected-xss] [http] [medium] http://testphp.vulnweb.com/listproducts.php?cat=3'"><30358                                                                
+[reflected-xss] [http] [medium] http://testphp.vulnweb.com/listproducts.php?cat=2'"><30358                                                                
 
-                projectdiscovery.io
-
-[INF] Current nuclei version: v2.9.10 (latest)
-[INF] Current nuclei-templates version: v9.6.0 (latest)
-[INF] New templates added in latest release: 33
-[INF] Templates loaded for current scan: 3
-[INF] Targets loaded for current scan: 18
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd&size=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd&size=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd&size=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd&size=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd&size=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd&size=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd
-[linux-lfi-fuzz] [http] [high] http://testphp.vulnweb.com/showimage.php?file=../../etc/passwd&size=../../etc/passwd
 
 ```
 ## Options
