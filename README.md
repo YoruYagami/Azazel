@@ -35,7 +35,7 @@ Available spider tools: paramspider, katana
 ## Usage
 
 ```bash
-     ~/hacking/github/Azazel  on    main +2 !1  ./azazel.sh -d "http://testphp.vulnweb.com/" -k --krl 50 -t ~/fuzzing-templates/xss/reflected-xss.yaml --nrl 5 --proxy http://127.0.0.1:8080                                           ✔                                                                   
+./azazel.sh -d "http://testphp.vulnweb.com/" -k --krl 50 -t ~/fuzzing-templates/xss/reflected-xss.yaml --nrl 5 --proxy http://127.0.0.1:8080                                           ✔                                                                   
                                                                                                                                                                                                                                                                                                                      
 [-] /robots.txt not found.                                                                                                                                                                                                                                                                                           
                                                                                                                                                                                                                                                                                                                      
