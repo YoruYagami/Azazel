@@ -7,12 +7,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Install ParamSpider
-if ! command -v paramspider &> /dev/null; then
+if [[ ! -d "$HOME/ParamSpider" ]]; then
     echo -e "${RED}Installing ParamSpider...${NC}"
-    git clone https://github.com/devanshbatham/ParamSpider.git
-    cd paramspider
-    pip install .
-    sudo mv /home/kali/.local/bin/paramspider /usr/local/bin
+    git clone https://github.com/devanshbatham/ParamSpider.git "$HOME/ParamSpider"
     echo -e "${GREEN}ParamSpider has been installed.${NC}"
 else
     echo -e "${GREEN}ParamSpider is already installed.${NC}"
