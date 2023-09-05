@@ -10,7 +10,6 @@ template=""  # Default template
 rate_limit=""
 katana_rate_limit=""
 proxy=""
-nikto_scan=false
 target=""
 
 help_message() {
@@ -19,7 +18,6 @@ help_message() {
     echo "Options:"
     echo "  -p                 Use ParamSpider (default)"
     echo "  -k                 Use Katana"
-    echo "  -n                 Perform an initial scan with Nikto"
     echo "  -d                 Specify the target domain"
     echo "  -t                 Use Nuclei with a specific template"
     echo "  --nrl              Set Nuclei rate limit (e.g., --nrl 10, default is 150)"
@@ -43,9 +41,6 @@ while :; do
             ;;
         -k)
             spider_tool="katana"
-            ;;
-        -n)
-            nikto_scan=true
             ;;
         -d)
             target="$2"
@@ -93,7 +88,6 @@ mkdir -p "$output_dir"
 check_additional_info() {
     local target="$1"
     local output_dir="$2"
-    declare -a endpoints=("/robots.txt" "/sitemap.xml" "/phpinfo.php" "/admin" "/login.php" "/cgi-bin" "/dashboard")
     declare -a source_code_endpoints=("/git" "/svn" "/hg" "/bzr" "/_darcs" "/Bitkeeper")
 
     echo
@@ -104,16 +98,8 @@ check_additional_info() {
 
     echo
 
-    # Check custom endpoints
-    for endpoint in "${endpoints[@]}"; do
-        check_endpoint "$target" "$endpoint" "$output_dir"
-        sleep 1
-    done
-
-    echo
-
     # Check for Exposed Source Code
-    echo -e "${YELLOW}[+] Checking for Exposed Source Code Endpoints...${NC}"
+    echo -e "${YELLOW}[+] Checking for Common Exposed Source Code Endpoints...${NC}"
     for endpoint in "${source_code_endpoints[@]}"; do
         check_endpoint "$target" "$endpoint" "$output_dir"
         sleep 1
@@ -121,14 +107,29 @@ check_additional_info() {
 
     echo
 
-    echo -e "${YELLOW}[+] Checking for low hanging fruit${NC}"
+    echo -e "${YELLOW}[+] Checking for headers${NC}"
 
     # Check X-Frame-Options header
-    header=$(curl -s -I "$target" | grep -i "X-Frame-Options")
-    if [[ -z $header ]]; then
-        echo -e "${GREEN}[+] Target vulnerable to Clickjacking!.${NC}"
+    response_headers=$(curl -s -I "$target")
+    header_value=$(echo "$response_headers" | grep -i "X-Frame-Options:" | awk -F: '{print $2}' | tr -d '[:space:]')
+
+    if [[ -z $header_value ]]; then
+        echo -e "${GREEN}[+] Target might be vulnerable to Clickjacking as X-Frame-Options header is missing!${NC}"
     else
-        echo -e "${RED}[+] Anti-clickjacking X-Frame-Options header detected.${NC}"
+        case "$header_value" in
+            DENY)
+                echo -e "${RED}[+] Anti-clickjacking X-Frame-Options header detected: DENY${NC}"
+                ;;
+            SAMEORIGIN)
+                echo -e "${RED}[+] Anti-clickjacking X-Frame-Options header detected: SAMEORIGIN${NC}"
+                ;;
+            ALLOW-FROM*)
+                echo -e "${RED}[+] Anti-clickjacking X-Frame-Options header detected: $header_value${NC}"
+                ;;
+            *)
+                echo -e "${YELLOW}[?] Unrecognized X-Frame-Options header value: $header_value${NC}"
+                ;;
+        esac
     fi
 
     # Check for HttpOnly flag
@@ -170,19 +171,6 @@ check_endpoint() {
 }
 
 check_additional_info "$target" "$output_dir"
-
-
-# If nikto_scan is true, run Nikto
-if $nikto_scan; then
-    echo -e "${YELLOW}[!] Executing Nikto scan, please wait...${NC}"
-    if [ -z "$proxy" ]; then
-        nikto -host "$target" -o "$output_dir/nikto_output.txt"
-    else
-        nikto_proxy=$(echo $proxy | sed 's/--proxy //')
-        nikto -host "$target" -useproxy "$nikto_proxy" -o "$output_dir/nikto_output.txt"
-    fi
-    echo
-fi
 
 echo -e "${YELLOW}[!] Executing $spider_tool, please wait...${NC}"
 
@@ -232,11 +220,17 @@ echo -e "${GREEN}JavaScript files discovered:${NC} $js_count"
 echo
 
 # Execute nuclei if the template is provided
+# Execute nuclei if the template is provided
 if [ ! -z "$template" ]; then
     echo -e "${YELLOW}[!] Executing nuclei with template $template, please wait...${NC}"
     
+    combined_output="$output_dir/nuclei_combined_results.txt"
+
     for file in $output_dir/paramspider/vuln/*.txt; do
-        nuclei -l "$file" -t "$template" $rate_limit $proxy -o "$output_dir/nuclei_results.txt"
+        pattern_name=$(basename "$file" .txt | sed 's/gf_//')
+
+        # Here, using >> instead of > ensures appending instead of overwriting
+        nuclei -l "$file" -t "$template" $rate_limit $proxy >> "$combined_output"
     done
 fi
 
