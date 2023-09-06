@@ -7,30 +7,27 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Install ParamSpider
-if [[ ! -d "$HOME/ParamSpider" ]]; then
+if ! command -v paramspider &> /dev/null; then
     echo -e "${RED}Installing ParamSpider...${NC}"
-    git clone https://github.com/YoruYagami/ParamSpider.git "$HOME/ParamSpider"
+    git clone https://github.com/devanshbatham/ParamSpider.git "$HOME/ParamSpider"
+    cd $HOME/ParamSpider
+    pip install .
+    rm -rf "$HOME/ParamSpider"
     echo -e "${GREEN}ParamSpider has been installed.${NC}"
 else
     echo -e "${GREEN}ParamSpider is already installed.${NC}"
 fi
 
-# Install nikto
-if ! command -v nikto &> /dev/null; then
-    echo -e "${RED}Installing nikto...${NC}"
-    sudo apt install nikto
-    echo -e "${GREEN}nitko has been installed.${NC}"
+if ! command -v openredirex &> /dev/null; then
+    echo -e "${RED}Installing openredirex...${NC}"
+    git clone https://github.com/devanshbatham/openredirex "$HOME/openredirex"
+    cd $HOME/openredirex
+    sudo chmod +x setup.sh
+    ./setup.sh
+    rm -rf "$HOME/openredirex"
+    echo -e "${GREEN}openredirex has been installed.${NC}"
 else
-    echo -e "${GREEN}nikto is already installed.${NC}"
-fi
-
-# Install getJS
-if ! command -v getJS &> /dev/null; then
-    echo -e "${RED}Installing getJS...${NC}"
-    go install github.com/003random/getJS@latest
-    echo -e "${GREEN}getJS has been installed.${NC}"
-else
-    echo -e "${GREEN}getJS is already installed.${NC}"
+    echo -e "${GREEN}openredirex is already installed.${NC}"
 fi
 
 # Install Katana
