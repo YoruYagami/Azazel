@@ -11,10 +11,11 @@ rate_limit=""
 katana_rate_limit=""
 proxy=""
 target=""
+use_openredirex=0  # Default: don't use openredirex
 
 help_message() {
     echo
-    echo -e "Usage: $0 [./azazel.sh -d "https://target.com" -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]\n"
+    echo -e "Usage: $0 [./azazel.sh -d "https://target.com" -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080 --openredirex]\n"
     echo "Options:"
     echo "  -p                 Use ParamSpider (default)"
     echo "  -k                 Use Katana"
@@ -23,6 +24,7 @@ help_message() {
     echo "  --nrl              Set Nuclei rate limit (e.g., --nrl 10, default is 150)"
     echo "  --krl              Set Katana rate limit (e.g., --krl 10, default is 150)"
     echo "  --proxy            Set proxy for selected tools (e.g., --proxy http://127.0.0.1:8080)"
+    echo "  --openredirex      Use openredirex on validated urls"
     echo "  -h                 Display this help message"
     echo -e "\nAvailable spider tools: paramspider, katana"
     echo
@@ -61,6 +63,9 @@ while :; do
         --proxy)
             proxy="--proxy $2"
             shift
+            ;;
+        --openredirex)
+            use_openredirex=1
             ;;
         --)
             shift
@@ -176,7 +181,15 @@ echo -e "${YELLOW}[!] Executing $spider_tool, please wait...${NC}"
 
 if [ "$spider_tool" == "paramspider" ]; then
     # Run ParamSpider
-    python3 ~/ParamSpider/paramspider.py -d "$target" --level high --quiet -o "$output_dir/urls.txt"
+    paramspider -d "$target"
+    mv "results/$target.txt" "$output_dir/full_urls.txt"
+    rm -rf results
+
+    echo 
+
+    echo -e "${YELLOW}Validating urls with httpx...${NC}"
+    httpx -l "$output_dir/full_urls.txt" -o "$output_dir/urls.txt"
+    rm -rf "$output_dir/full_urls.txt"
 elif [ "$spider_tool" == "katana" ]; then
     # Run Katana
     katana -u "$target" -d 5 -kf robotstxt,sitemapxml -o "$output_dir/urls.txt" $katana_rate_limit $proxy &
@@ -185,9 +198,14 @@ else
     exit 1
 fi
 
-# Run getJS
-getJS_output="$output_dir/getjs_output.txt"
-getJS --url "$target" --complete > "$getJS_output"
+if [ $use_openredirex -eq 1 ]; then
+    echo -e "${YELLOW}Filtering urls with 'gf redirect'...${NC}"
+    gf redirect < "$output_dir/urls.txt" > "$output_dir/redirect_urls.txt"
+
+    echo -e "${YELLOW}Using openredirex on filtered urls...${NC}"
+    cat "$output_dir/redirect_urls.txt" | openredirex > "$output_dir/openredirex_results.txt"
+    rm -rf "$output_dir/redirect_urls.txt"
+fi
 
 wait
 
@@ -213,18 +231,11 @@ for pattern in "${patterns[@]}"; do
     fi
 done
 
-# Count the number of JS files discovered
-js_count=$(grep -Eo 'https?://[^/]+/[^ ]+\.js' "$getJS_output" | wc -l)
-echo
-echo -e "${GREEN}JavaScript files discovered:${NC} $js_count"
-echo
-
-# Execute nuclei if the template is provided
 # Execute nuclei if the template is provided
 if [ ! -z "$template" ]; then
     echo -e "${YELLOW}[!] Executing nuclei with template $template, please wait...${NC}"
     
-    combined_output="$output_dir/nuclei_combined_results.txt"
+    combined_output="$output_dir/nuclei_results.txt"
 
     for file in $output_dir/paramspider/vuln/*.txt; do
         pattern_name=$(basename "$file" .txt | sed 's/gf_//')
