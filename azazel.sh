@@ -10,10 +10,12 @@ template=""
 rate_limit="--rl 50" # Default to medium rate limit
 proxy=""
 target=""
+fuzz_enabled=0
+fuzz_template_path="~/fuzzing-templates" # Default path
 
 help_message() {
     echo
-    echo -e "Usage: $0 [./azazel.sh -d \"https://target.com\" --rl 15 -t ~/fuzzing-templates/ --proxy http://127.0.0.1:8080 --slow/--medium/--fast]\n"
+    echo -e "Usage: $0 [./azazel.sh -d \"https://target.com\" --rl 15 -t ~/fuzzing-templates/ --proxy http://127.0.0.1:8080 --slow/--medium/--fast --fuzz [template path]]\n"
     echo "Options:"
     echo "  -d                 Specify the target domain"
     echo "  -t                 Use Nuclei with a specific template"
@@ -22,6 +24,7 @@ help_message() {
     echo "  --slow             Set rate limit for slow scanning"
     echo "  --medium           Set rate limit for medium scanning (default)"
     echo "  --fast             Set rate limit for fast scanning"
+    echo "  --fuzz             Enable fuzzing with Dalfox and Nuclei using specified template path"
     echo "  -h                 Display this help message"
     echo
 }
@@ -52,6 +55,13 @@ while :; do
         --proxy)
             proxy="--proxy $2"
             shift
+            ;;
+        --fuzz)
+            fuzz_enabled=1
+            if [ ! -z "$2" ] && [ "${2:0:1}" != "-" ]; then
+                fuzz_template_path="$2"
+                shift
+            fi
             ;;
         --)
             shift
@@ -111,16 +121,22 @@ sleep 2
 echo
 
 # Execute Dalfox
-echo -e "${YELLOW}[!] Executing Dalfox, please wait...${NC}"
-dalfox url "$target" --mining-dom --deep-domxss --mining-dict --delay 500 --report $proxy -o "$output_dir/dalfox_results.txt"
-sleep 2
-echo
+if [ $fuzz_enabled -eq 1 ]; then
+    echo -e "${YELLOW}[!] Executing Dalfox with fuzzing, please wait...${NC}"
+    dalfox file "$output_dir/urls.txt" --mining-dom --deep-domxss --mining-dict --delay 500 --report $proxy -o "$output_dir/dalfox_fuzz_results.txt"
+    sleep 2
+    echo
+fi
 
 # Execute nuclei if the template is provided
-if [ ! -z "$template" ]; then
+if [ ! -z "$template" ] || [ $fuzz_enabled -eq 1 ]; then
     echo -e "${YELLOW}[!] Executing nuclei with template $template, please wait...${NC}"
-    nuclei -u "$target" -t "$template" $rate_limit $proxy -as -o "$output_dir/nuclei_results.txt"
+    if [ $fuzz_enabled -eq 1 ]; then
+        nuclei -l "$output_dir/urls.txt" -t "$fuzz_template_path" $rate_limit $proxy -as -o "$output_dir/nuclei_fuzz_results.txt"
+    else
+        nuclei -u "$target" -t "$template" $rate_limit $proxy -as -o "$output_dir/nuclei_results.txt"
+    fi
+    echo
 fi
-echo
 
 echo -e "${GREEN}[+] Scan complete. Results saved in $output_dir${NC}"
