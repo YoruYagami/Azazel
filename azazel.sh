@@ -115,7 +115,7 @@ echo
 
 # Execute Katana
 echo -e "${YELLOW}[!] Executing Katana and JS analysis, please wait...${NC}"
-katana -u "$target" -d 5 -kf robotstxt,sitemapxml -jc -o "$output_dir/urls.txt" $rate_limit $proxy
+katana -u "$target" -depth 10 -jc -jsl -kf all -timeout 20 -retry 5 -s depth-first -iqp -c 30 -p 30 -aff -fx -o "$output_dir/urls.txt" $rate_limit $proxy
 wait
 echo
 
