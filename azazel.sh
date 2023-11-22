@@ -138,7 +138,7 @@ fi
 
 # Execute Gobuster
 echo -e "${YELLOW}[!] Executing Gobuster, please wait...${NC}"
-gobuster dir -u "$target" -w "$wordlist" --quiet -o "$output_dir/gobuster_results.txt" $proxy
+gobuster dir -u "$target" -w "$wordlist" --quiet -x php,html,js,txt -t 20 -r -f -e -s 200,204,301,302,307,401,403 -b 404 --random-agent --retry --retry-attempts 5 -o "$output_dir/gobuster_results.txt" $proxy
 wait
 echo
 
@@ -146,9 +146,9 @@ echo
 echo -e "${YELLOW}[!] Executing Dalfox, please wait...${NC}"
 if [ $fuzz_enabled -eq 1 ]; then
     grep -E "\?" "$output_dir/urls.txt" > "$output_dir/urls_with_params.txt"
-    dalfox file "$output_dir/urls_with_params.txt" --mining-dom --deep-domxss --mining-dict --silence $proxy -o "$output_dir/dalfox_fuzz_results.txt"
+    dalfox file "$output_dir/urls_with_params.txt" --mining-dom --deep-domxss --mining-dict-word --mining-dom --remote-wordlists --mining-dict --waf-evasion --follow-redirects --ignore-return 404,500 --silence $proxy -o "$output_dir/dalfox_fuzz_results.txt"
 else
-    dalfox url "$target" --mining-dom --deep-domxss --mining-dict --silence --report $proxy -o "$output_dir/dalfox_results.txt"
+    dalfox url "$target" --mining-dom --deep-domxss --mining-dict-word --mining-dom --remote-wordlists --mining-dict --waf-evasion --follow-redirects --ignore-return 404,500 --silence --report $proxy -o "$output_dir/dalfox_results.txt"
 fi
 wait
 echo
