@@ -129,19 +129,6 @@ fi
 wait
 echo
 
-# Check for SSL and set Gobuster flag
-ssl_check=$(curl -Is $target | grep -i 'Location: https')
-gobuster_tls=""
-if [ -z "$ssl_check" ]; then
-    gobuster_tls="-k"
-fi
-
-# Execute Gobuster
-echo -e "${YELLOW}[!] Executing Gobuster, please wait...${NC}"
-gobuster dir -u "$target" -w "$wordlist" --quiet -x php,html,js,txt -t 20 -r -f -e -s 200,204,301,302,307,401,403 -b 404 --random-agent --retry --retry-attempts 5 -o "$output_dir/gobuster_results.txt" $proxy
-wait
-echo
-
 # Execute Dalfox
 echo -e "${YELLOW}[!] Executing Dalfox, please wait...${NC}"
 if [ $fuzz_enabled -eq 1 ]; then
