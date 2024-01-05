@@ -125,25 +125,6 @@ wait
 
 echo
 
-# Display discovered vulnerabilities in a table-like format
-echo -e "${YELLOW}Count of potential vulnerable URLs discovered:${NC}"
-echo
-printf "%-15s %-25s\n" "Vulnerability" "URLs discovered"
-printf "%-15s %-25s\n" "-------------" "---------------"
-
-# Use gf to find common patterns
-mkdir -p "$output_dir/paramspider/vuln"
-patterns=("lfi" "rce" "redirect" "sqli" "ssrf" "ssti" "xss" "idor" "debug_logic")
-
-for pattern in "${patterns[@]}"; do
-    matched_lines=$(gf "$pattern" < "$output_dir/urls.txt")
-    if [ ! -z "$matched_lines" ]; then
-        echo "$matched_lines" > "$output_dir/paramspider/vuln/gf_${pattern}.txt"
-        count=$(echo "$matched_lines" | wc -l)
-        printf "%-15s %-25s\n" "$pattern" "$count"
-    fi
-done
-
 # Execute nuclei if the template is provided
 if [ ! -z "$template" ]; then
     echo -e "${YELLOW}[!] Executing nuclei with template $template, please wait...${NC}"
