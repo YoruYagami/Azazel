@@ -127,9 +127,14 @@ fi
 echo -e "${YELLOW}[+] Searching for sensitive data in JavaScript files...${NC}"
 grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret" "$output_dir/js.txt" > "$output_dir/sensitive_data.txt"
 
-# Nuclei scan on JavaScript files
-echo -e "${YELLOW}[+] Executing Nuclei on JavaScript files...${NC}"
-nuclei -l "$output_dir/js.txt" -t ~/nuclei-templates/exposures/ -o "$output_dir/js_exposures_results.txt"
+# Check if there are any .js URLs found
+if [ -s "$output_dir/js.txt" ]; then
+    # Nuclei scan on JavaScript files
+    echo -e "${YELLOW}[+] Executing Nuclei on JavaScript files...${NC}"
+    nuclei -l "$output_dir/js.txt" -t ~/nuclei-templates/exposures/ -o "$output_dir/js_exposures_results.txt"
+else
+    echo -e "${YELLOW}[+] No .js URLs found. Skipping Nuclei scan.${NC}"
+fi
 
 wait
 
