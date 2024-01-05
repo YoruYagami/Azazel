@@ -84,6 +84,7 @@ timestamp=$(date '+%Y%m%d%H%M')
 output_dir="scan/$target/$timestamp"
 mkdir -p "$output_dir"
 
+# Essentials Check
 check_additional_info() {
     local target="$1"
     local output_dir="$2"
@@ -130,6 +131,45 @@ grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|fireba
 echo -e "${YELLOW}[+] Executing Nuclei on JavaScript files...${NC}"
 nuclei -l "$output_dir/js.txt" -t ~/nuclei-templates/exposures/ -o "$output_dir/js_exposures_results.txt"
 
+wait
+
+# Add some space for better formatting
+echo
+
+# Display discovered vulnerabilities in a table-like format
+echo -e "${YELLOW}Count of potential vulnerable URLs discovered:${NC}"
+echo
+printf "%-15s %-25s\n" "Vulnerability" "URLs discovered"
+printf "%-15s %-25s\n" "-------------" "---------------"
+
+# Use gf to find common patterns
+mkdir -p "$output_dir/paramspider/vuln"
+patterns=("lfi" "rce" "redirect" "sqli" "ssrf" "ssti" "xss" "idor" "debug_logic")
+
+for pattern in "${patterns[@]}"; do
+    matched_lines=$(gf "$pattern" < "$output_dir/urls.txt")
+    if [ ! -z "$matched_lines" ]; then
+        echo "$matched_lines" > "$output_dir/paramspider/vuln/gf_${pattern}.txt"
+        count=$(echo "$matched_lines" | wc -l)
+        printf "%-15s %-25s\n" "$pattern" "$count"
+    fi
+done
+
+# Execute nuclei if the template is provided
+if [ ! -z "$template" ]; then
+    echo -e "${YELLOW}[!] Executing nuclei with template $template, please wait...${NC}"
+    
+    combined_output="$output_dir/nuclei_results.txt"
+
+    for file in $output_dir/paramspider/vuln/*.txt; do
+        pattern_name=$(basename "$file" .txt | sed 's/gf_//')
+
+        # Here, using >> instead of > ensures appending instead of overwriting
+        nuclei -l "$file" -t "$template" $rate_limit $proxy >> "$combined_output"
+    done
+fi
+
+# Add some space for better formatting
 echo
 
 echo -e "${GREEN}[+] Scan complete. Results saved in $output_dir${NC}"
