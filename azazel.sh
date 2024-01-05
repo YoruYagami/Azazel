@@ -84,7 +84,6 @@ timestamp=$(date '+%Y%m%d%H%M')
 output_dir="scan/$target/$timestamp"
 mkdir -p "$output_dir"
 
-# Essentials Check
 check_additional_info() {
     local target="$1"
     local output_dir="$2"
@@ -111,52 +110,25 @@ if [ "$spider_tool" == "paramspider" ]; then
     echo 
 
     echo -e "${YELLOW}Validating urls with httpx...${NC}"
-    httpx -l "$output_dir/full_urls.txt" -o "$output_dir/urls.txt"
+    httpx -l "$output_dir/full_urls.txt" -mc 200 | grep .js | tee "$output_dir/js.txt"
     rm -rf "$output_dir/full_urls.txt"
 elif [ "$spider_tool" == "katana" ]; then
     # Run Katana
     katana -u "$target" -d 10 -jsl -kf all -jc -iqp -aff -fx -o "$output_dir/urls.txt" $katana_rate_limit $proxy &
+    wait
+    cat "$output_dir/urls.txt" | httpx -mc 200 | grep .js | tee "$output_dir/js.txt"
 else
     echo "Invalid spider tool: $spider_tool"
     exit 1
 fi
 
-wait
+# Grep for sensitive data
+echo -e "${YELLOW}[+] Searching for sensitive data in JavaScript files...${NC}"
+grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret" "$output_dir/js.txt" > "$output_dir/sensitive_data.txt"
 
-echo
-
-# Display discovered vulnerabilities in a table-like format
-echo -e "${YELLOW}Count of potential vulnerable URLs discovered:${NC}"
-echo
-printf "%-15s %-25s\n" "Vulnerability" "URLs discovered"
-printf "%-15s %-25s\n" "-------------" "---------------"
-
-# Use gf to find common patterns
-mkdir -p "$output_dir/paramspider/vuln"
-patterns=("lfi" "rce" "redirect" "sqli" "ssrf" "ssti" "xss" "idor" "debug_logic")
-
-for pattern in "${patterns[@]}"; do
-    matched_lines=$(gf "$pattern" < "$output_dir/urls.txt")
-    if [ ! -z "$matched_lines" ]; then
-        echo "$matched_lines" > "$output_dir/paramspider/vuln/gf_${pattern}.txt"
-        count=$(echo "$matched_lines" | wc -l)
-        printf "%-15s %-25s\n" "$pattern" "$count"
-    fi
-done
-
-# Execute nuclei if the template is provided
-if [ ! -z "$template" ]; then
-    echo -e "${YELLOW}[!] Executing nuclei with template $template, please wait...${NC}"
-    
-    combined_output="$output_dir/nuclei_results.txt"
-
-    for file in $output_dir/paramspider/vuln/*.txt; do
-        pattern_name=$(basename "$file" .txt | sed 's/gf_//')
-
-        # Here, using >> instead of > ensures appending instead of overwriting
-        nuclei -l "$file" -t "$template" $rate_limit $proxy >> "$combined_output"
-    done
-fi
+# Nuclei scan on JavaScript files
+echo -e "${YELLOW}[+] Executing Nuclei on JavaScript files...${NC}"
+nuclei -l "$output_dir/js.txt" -t ~/nuclei-templates/exposures/ -o "$output_dir/js_exposures_results.txt"
 
 echo
 
