@@ -111,34 +111,18 @@ if [ "$spider_tool" == "paramspider" ]; then
     echo 
 
     echo -e "${YELLOW}Validating urls with httpx...${NC}"
-    httpx -l "$output_dir/full_urls.txt" -mc 200 | grep .js | tee "$output_dir/js.txt"
+    httpx -l "$output_dir/full_urls.txt" -o "$output_dir/urls.txt"
     rm -rf "$output_dir/full_urls.txt"
 elif [ "$spider_tool" == "katana" ]; then
     # Run Katana
     katana -u "$target" -d 10 -jsl -kf all -jc -iqp -aff -fx -o "$output_dir/urls.txt" $katana_rate_limit $proxy &
-    wait
-    cat "$output_dir/urls.txt" | httpx -mc 200 | grep .js | tee "$output_dir/js.txt"
 else
     echo "Invalid spider tool: $spider_tool"
     exit 1
 fi
 
-# Grep for sensitive data
-echo -e "${YELLOW}[+] Searching for sensitive data in JavaScript files...${NC}"
-grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret" "$output_dir/js.txt" > "$output_dir/sensitive_data.txt"
-
-# Check if there are any .js URLs found
-if [ -s "$output_dir/js.txt" ]; then
-    # Nuclei scan on JavaScript files
-    echo -e "${YELLOW}[+] Executing Nuclei on JavaScript files...${NC}"
-    nuclei -l "$output_dir/js.txt" -t ~/nuclei-templates/exposures/ -o "$output_dir/js_exposures_results.txt"
-else
-    echo -e "${YELLOW}[+] No .js URLs found. Skipping Nuclei scan.${NC}"
-fi
-
 wait
 
-# Add some space for better formatting
 echo
 
 # Display discovered vulnerabilities in a table-like format
@@ -174,7 +158,6 @@ if [ ! -z "$template" ]; then
     done
 fi
 
-# Add some space for better formatting
 echo
 
 echo -e "${GREEN}[+] Scan complete. Results saved in $output_dir${NC}"
