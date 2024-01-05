@@ -11,11 +11,10 @@ rate_limit=""
 katana_rate_limit=""
 proxy=""
 target=""
-use_openredirex=0  # Default: don't use openredirex
 
 help_message() {
     echo
-    echo -e "Usage: $0 [./azazel.sh -d "https://target.com" -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080 --openredirex]\n"
+    echo -e "Usage: $0 [./azazel.sh -d "https://target.com" -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]\n"
     echo "Options:"
     echo "  -p                 Use ParamSpider (default)"
     echo "  -k                 Use Katana"
@@ -24,7 +23,6 @@ help_message() {
     echo "  --nrl              Set Nuclei rate limit (e.g., --nrl 10, default is 150)"
     echo "  --krl              Set Katana rate limit (e.g., --krl 10, default is 150)"
     echo "  --proxy            Set proxy for selected tools (e.g., --proxy http://127.0.0.1:8080)"
-    echo "  --openredirex      Use openredirex on validated urls"
     echo "  -h                 Display this help message"
     echo -e "\nAvailable spider tools: paramspider, katana"
     echo
@@ -64,9 +62,6 @@ while :; do
             proxy="--proxy $2"
             shift
             ;;
-        --openredirex)
-            use_openredirex=1
-            ;;
         --)
             shift
             break
@@ -93,8 +88,7 @@ mkdir -p "$output_dir"
 check_additional_info() {
     local target="$1"
     local output_dir="$2"
-    declare -a source_code_endpoints=("/git" "/svn" "/hg" "/bzr" "/_darcs" "/Bitkeeper")
-
+    
     echo
 
     # Use whatweb for detecting technologies 
@@ -102,77 +96,6 @@ check_additional_info() {
     whatweb -a 1 "$target" --log-brief="$output_dir/whatweb.txt"
 
     echo
-
-    # Check for Exposed Source Code
-    echo -e "${YELLOW}[+] Checking for Common Exposed Source Code Endpoints...${NC}"
-    for endpoint in "${source_code_endpoints[@]}"; do
-        check_endpoint "$target" "$endpoint" "$output_dir"
-        sleep 1
-    done
-
-    echo
-
-    echo -e "${YELLOW}[+] Checking for headers${NC}"
-
-    # Check X-Frame-Options header
-    response_headers=$(curl -s -I "$target")
-    header_value=$(echo "$response_headers" | grep -i "X-Frame-Options:" | awk -F: '{print $2}' | tr -d '[:space:]')
-
-    if [[ -z $header_value ]]; then
-        echo -e "${GREEN}[+] Target might be vulnerable to Clickjacking as X-Frame-Options header is missing!${NC}"
-    else
-        case "$header_value" in
-            DENY)
-                echo -e "${RED}[+] Anti-clickjacking X-Frame-Options header detected: DENY${NC}"
-                ;;
-            SAMEORIGIN)
-                echo -e "${RED}[+] Anti-clickjacking X-Frame-Options header detected: SAMEORIGIN${NC}"
-                ;;
-            ALLOW-FROM*)
-                echo -e "${RED}[+] Anti-clickjacking X-Frame-Options header detected: $header_value${NC}"
-                ;;
-            *)
-                echo -e "${YELLOW}[?] Unrecognized X-Frame-Options header value: $header_value${NC}"
-                ;;
-        esac
-    fi
-
-    # Check for HttpOnly flag
-    cookie_header=$(curl -s -I "$target" | grep -i "Set-Cookie")
-    if [[ $cookie_header == *"; HttpOnly"* ]]; then
-        echo -e "${RED}[-] HttpOnly flag is set on the cookie.${NC}"
-    else
-        echo -e "${GREEN}[+] HttpOnly flag is missing from the cookie!.${NC}"
-    fi
-
-    # Check for Content-Security-Policy (CSP) header
-    csp_header=$(curl -s -I "$target" | grep -i "Content-Security-Policy")
-    if [[ -z $csp_header ]]; then
-        echo -e "${GREEN}[+] Content-Security-Policy (CSP) header is missing!.${NC}"
-    else
-        if [[ $csp_header == *'unsafe-inline'* ]] || [[ $csp_header == *'unsafe-eval'* ]]; then
-            echo -e "${GREEN}[+] CSP contains unsafe directives (unsafe-inline or unsafe-eval).${NC}"
-        else
-            echo -e "${RED}[-] Proper CSP header detected.${NC}"
-        fi
-    fi
-
-    echo
-}
-
-check_endpoint() {
-    local target="$1"
-    local endpoint="$2"
-    local output_dir="$3"
-
-    response=$(curl -s -o /dev/null -w "%{http_code}" "$target$endpoint")
-    if [[ $response -eq 200 ]]; then
-        echo -e "${GREEN}[+] $endpoint found. Saving...${NC}"
-        content=$(curl -s "$target$endpoint")
-        echo "$content" > "$output_dir$endpoint"
-    else
-        echo -e "${RED}[-] $endpoint not found.${NC}"
-    fi
 }
 
 check_additional_info "$target" "$output_dir"
@@ -192,24 +115,14 @@ if [ "$spider_tool" == "paramspider" ]; then
     rm -rf "$output_dir/full_urls.txt"
 elif [ "$spider_tool" == "katana" ]; then
     # Run Katana
-    katana -u "$target" -d 5 -kf robotstxt,sitemapxml -o "$output_dir/urls.txt" $katana_rate_limit $proxy &
+    katana -u "$target" -d 10 -jsl -kf all -jc -iqp -aff -fx -o "$output_dir/urls.txt" $katana_rate_limit $proxy &
 else
     echo "Invalid spider tool: $spider_tool"
     exit 1
 fi
 
-if [ $use_openredirex -eq 1 ]; then
-    echo -e "${YELLOW}Filtering urls with 'gf redirect'...${NC}"
-    gf redirect < "$output_dir/urls.txt" > "$output_dir/redirect_urls.txt"
-
-    echo -e "${YELLOW}Using openredirex on filtered urls...${NC}"
-    cat "$output_dir/redirect_urls.txt" | openredirex > "$output_dir/openredirex_results.txt"
-    rm -rf "$output_dir/redirect_urls.txt"
-fi
-
 wait
 
-# Add some space for better formatting
 echo
 
 # Display discovered vulnerabilities in a table-like format
@@ -245,7 +158,6 @@ if [ ! -z "$template" ]; then
     done
 fi
 
-# Add some space for better formatting
 echo
 
 echo -e "${GREEN}[+] Scan complete. Results saved in $output_dir${NC}"
