@@ -8,39 +8,26 @@ NC='\033[0m' # No Color
 
 template=""  # Default template
 rate_limit=""
-katana_rate_limit=""
 proxy=""
 target=""
 
 help_message() {
     echo
-    echo -e "Usage: $0 [./azazel.sh -d "https://target.com" -k --krl 2 -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]\n"
+    echo -e "Usage: $0 [./azazel.sh -d "https://target.com" -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]\n"
     echo "Options:"
-    echo "  -p                 Use ParamSpider (default)"
-    echo "  -k                 Use Katana"
     echo "  -d                 Specify the target domain"
     echo "  -t                 Use Nuclei with a specific template"
     echo "  --nrl              Set Nuclei rate limit (e.g., --nrl 10, default is 150)"
-    echo "  --krl              Set Katana rate limit (e.g., --krl 10, default is 150)"
     echo "  --proxy            Set proxy for selected tools (e.g., --proxy http://127.0.0.1:8080)"
     echo "  -h                 Display this help message"
-    echo -e "\nAvailable spider tools: paramspider, katana"
     echo
 }
-
-spider_tool="paramspider"  # Default spider tool
 
 while :; do
     case $1 in
         -h|--help)
             help_message
             exit
-            ;;
-        -p)
-            spider_tool="paramspider"
-            ;;
-        -k)
-            spider_tool="katana"
             ;;
         -d)
             target="$2"
@@ -52,10 +39,6 @@ while :; do
             ;;
         --nrl)
             rate_limit="--rl $2"
-            shift
-            ;;
-        --krl)
-            katana_rate_limit="--rl $2"
             shift
             ;;
         --proxy)
@@ -100,28 +83,26 @@ check_additional_info() {
 
 check_additional_info "$target" "$output_dir"
 
-echo -e "${YELLOW}[!] Executing $spider_tool, please wait...${NC}"
+# Spidering part
+echo -e "${YELLOW}[!] Executing paramspider, please wait...${NC}"
+# Remove "http://" or "https://" and trailing slash from the URL
+target_url=$(echo "$target" | sed -e 's#^https\?://##' -e 's#/$##')
 
-if [ "$spider_tool" == "paramspider" ]; then
-    # Run ParamSpider
-    paramspider -d "$target"
-    mv "results/$target.txt" "$output_dir/full_urls.txt"
-    rm -rf results
+# Run urls and parameters gathering
+paramspider -d "$target_url"
+mv "results/$target_url.txt" "$output_dir/full_urls.txt"
+rm -rf results
 
-    echo 
+echo 
 
-    echo -e "${YELLOW}Validating urls with httpx...${NC}"
-    httpx -l "$output_dir/full_urls.txt" -o "$output_dir/urls.txt"
-    rm -rf "$output_dir/full_urls.txt"
-elif [ "$spider_tool" == "katana" ]; then
-    # Run Katana
-    katana -u "$target" -d 10 -jsl -kf all -jc -iqp -aff -fx -o "$output_dir/urls.txt" $katana_rate_limit $proxy &
-else
-    echo "Invalid spider tool: $spider_tool"
-    exit 1
-fi
+echo -e "${YELLOW}Validating urls with httpx...${NC}"
+httpx -l "$output_dir/full_urls.txt" -o "$output_dir/paramspider.txt" $proxy
+rm -rf "$output_dir/full_urls.txt"
 
-wait
+echo
+
+echo -e "${YELLOW}Executing gau on the target${NC}"
+~/go/bin/gau --blacklist png,jpg,gif $target_url $proxy | sort -u | tee -a "$output_dir/gau.txt"
 
 echo
 
@@ -130,13 +111,7 @@ if [ ! -z "$template" ]; then
     echo -e "${YELLOW}[!] Executing nuclei with template $template, please wait...${NC}"
     
     combined_output="$output_dir/nuclei_results.txt"
-
-    for file in $output_dir/paramspider/vuln/*.txt; do
-        pattern_name=$(basename "$file" .txt | sed 's/gf_//')
-
-        # Here, using >> instead of > ensures appending instead of overwriting
-        nuclei -l "$file" -t "$template" $rate_limit $proxy >> "$combined_output"
-    done
+    nuclei -l "$file" -t "$template" $rate_limit $proxy >> "$combined_output"
 fi
 
 echo
