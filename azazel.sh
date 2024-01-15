@@ -113,7 +113,8 @@ do
     # Process with httpx and notify
     cat new_subdomains.txt | httpx $silent_mode -status-code -tech-detect -title | notify $silent_mode
 
-    naabu -host 
+    # Run naabu on the new subdomains
+    naabu -iL new_subdomains.txt | notify $silent_mode
     
     # Run nuclei on the new subdomains if nuclei_mode is true
     if $nuclei_mode; then
