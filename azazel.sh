@@ -1,119 +1,82 @@
 #!/bin/bash
 
-# Adding some colors
+# ANSI color codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-template=""  # Default template
-rate_limit=""
-proxy=""
-target=""
-
-help_message() {
-    echo
-    echo -e "Usage: $0 [./azazel.sh -d "https://target.com" -t ~/fuzzing-templates/ --nrl 5 --proxy http://127.0.0.1:8080]\n"
-    echo "Options:"
-    echo "  -d                 Specify the target domain"
-    echo "  -t                 Use Nuclei with a specific template"
-    echo "  --nrl              Set Nuclei rate limit (e.g., --nrl 10, default is 150)"
-    echo "  --proxy            Set proxy for selected tools (e.g., --proxy http://127.0.0.1:8080)"
-    echo "  -h                 Display this help message"
-    echo
-}
-
-while :; do
-    case $1 in
-        -h|--help)
-            help_message
-            exit
-            ;;
-        -d)
-            target="$2"
-            shift
-            ;;
-        -t)
-            template="$2"
-            shift
-            ;;
-        --nrl)
-            rate_limit="--rl $2"
-            shift
-            ;;
-        --proxy)
-            proxy="--proxy $2"
-            shift
-            ;;
-        --)
-            shift
-            break
-            ;;
-        -?*)
-            printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
-            ;;
-        *)
-            break
-    esac
-    shift
-done
-
-if [ -z "$target" ]; then
-    help_message
+# Usage function to display help
+usage() {
+    echo -e "${YELLOW}=================== ${GREEN}Script Usage${YELLOW} ===================${NC}"
+    echo -e "${BLUE}Usage:${NC}"
+    echo -e "  $0 -f <domain_file> [--loop <loop_time>] [-o <output_file>] [-x <exclude_file>]\n"
+    
+    echo -e "${YELLOW}Options:${NC}"
+    echo -e "  ${GREEN}-f, --file${NC}    ${BLUE}Domain file to process${NC}"
+    echo -e "  ${GREEN}--loop${NC}       ${BLUE}Time in seconds to wait before re-running the script${NC} ${RED}(default: 7200)${NC}"
+    echo -e "  ${GREEN}-o, --output${NC}  ${BLUE}Output file for results${NC} ${RED}(default: subdomains.txt)${NC}"
+    echo -e "  ${GREEN}-x, --exclude${NC} ${BLUE}File with subdomains to exclude from results${NC}\n"
+    echo -e "${YELLOW}=================================================${NC}"
     exit 1
-fi
-
-timestamp=$(date '+%Y%m%d%H%M')
-output_dir="scan/$target/$timestamp"
-mkdir -p "$output_dir"
-
-# Essentials Check
-check_additional_info() {
-    local target="$1"
-    local output_dir="$2"
-    
-    echo
-
-    # Use whatweb for detecting technologies 
-    echo -e "${YELLOW}[+] Detecting Technologies on the target...${NC}"
-    whatweb -a 1 "$target" --log-brief="$output_dir/whatweb.txt"
-
-    echo
 }
 
-check_additional_info "$target" "$output_dir"
+domain_file=""
+loop_time=7200
+output_file="subdomains.txt"
+exclude_file=""
 
-# Spidering part
-echo -e "${YELLOW}[!] Executing paramspider, please wait...${NC}"
-# Remove "http://" or "https://" and trailing slash from the URL
-target_url=$(echo "$target" | sed -e 's#^https\?://##' -e 's#/$##')
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -f|--file)
+                domain_file="$2"
+                shift 2
+                ;;
+            --loop)
+                loop_time="$2"
+                shift 2
+                ;;
+            -o|--output)
+                output_file="$2"
+                shift 2
+                ;;
+            -x|--exclude)
+                exclude_file="$2"
+                shift 2
+                ;;
+            -h|--help)
+                usage
+                ;;
+            *)
+                echo -e "${RED}Unknown option:${NC} $1"
+                usage
+                ;;
+        esac
+    done
+}
 
-# Run urls and parameters gathering
-paramspider -d "$target_url"
-mv "results/$target_url.txt" "$output_dir/full_urls.txt"
-rm -rf results
+# Parse command line arguments
+parse_arguments "$@"
 
-echo 
-
-echo -e "${YELLOW}Validating urls with httpx...${NC}"
-httpx -l "$output_dir/full_urls.txt" -o "$output_dir/paramspider.txt" $proxy
-rm -rf "$output_dir/full_urls.txt"
-
-echo
-
-echo -e "${YELLOW}Executing gau on the target${NC}"
-~/go/bin/gau --blacklist png,jpg,gif $target_url $proxy | sort -u | tee -a "$output_dir/gau.txt"
-
-echo
-
-# Execute nuclei if the template is provided
-if [ ! -z "$template" ]; then
-    echo -e "${YELLOW}[!] Executing nuclei with template $template, please wait...${NC}"
-    
-    combined_output="$output_dir/nuclei_results.txt"
-    nuclei -l "$file" -t "$template" $rate_limit $proxy >> "$combined_output"
+# Check if domain file is provided
+if [[ -z "$domain_file" ]]; then
+    echo -e "${RED}Error:${NC} You must provide a domain file"
+    usage
 fi
 
-echo
+# Read domains from the file
+readarray -t targets < "$domain_file"
 
-echo -e "${GREEN}[+] Scan complete. Results saved in $output_dir${NC}"
+while :
+do
+    for target in "${targets[@]}"
+    do
+        subfinder -d "$target" -o "$output_file"
+    done
+
+    cat "$output_file" | anew old_subdomains.txt | httpx -silent | notify -p telegram -id bot_name "New subdomains found for ${targets>
+    > "$output_file"  # Clear the temporary file for new subdomains
+    sleep "$loop_time"  # Wait for the specified time before running the loop again
+done
