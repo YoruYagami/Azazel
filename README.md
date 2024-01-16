@@ -12,20 +12,33 @@ This bash script automates the process of finding new subdomains and analyzing t
 - **Notification Support**: Notifies you discord/telegram/etc.. when new subdomains are discovered.
 - **Nuclei Integration**: Optional scanning of new subdomains using Nuclei with custom templates.
 
-## Options
-- **-f, --file** : Specify domain file to process.
-- **--loop** : Time in seconds to wait before re-running (default: 3600).
-- **-o, --output** : Specify output file for results (default: subdomains.txt).
-- **-x, --exclude** : File with subdomains to exclude.
-- **--silent** : Run in silent mode.
-- **--notify** : Enable notifications for new subdomains.
-- **-n, --nuclei** : Run nuclei against new subdomains.
-- **-t, --template** : Nuclei templates path (default: ~/nuclei-templates).
-
-## Examples
+## --help
 ```
-./your_script_name.sh -f domains.txt --loop 3600 --output results.txt
-./your_script_name.sh -f domains.txt --silent --notify --nuclei -t ~/nuclei-templates
+➜  Azazel git:(main) ✗ ./azazel.sh
+Error: You must provide a domain file
+=================== Script Help ===================
+Description:
+  This script automates the process of finding and analyzing subdomains.
+  It integrates various tools for subdomain discovery, port scanning, and reporting.
+
+Usage:
+  ./azazel.sh -f <domain_file> [options]
+
+Options:
+  -f, --file        Specify domain file to process
+  --loop           Time in seconds to wait before re-running (default: 3600)
+  -o, --output      Specify output file for results (default: subdomains.txt)
+  -x, --exclude     File with subdomains to exclude
+  --silent         Run in silent mode
+  --notify         Enable notifications for new subdomains
+  -n, --nuclei      Run nuclei against new subdomains
+  -t, --template    Nuclei templates path (default: ~/nuclei-templates)
+
+Examples:
+  ./azazel.sh -f domains.txt --loop 3600 --output results.txt
+  ./azazel.sh -f domains.txt --silent --notify --nuclei -t ~/nuclei-templates
+
+=================================================
 ```
 
 ## Dependecies
