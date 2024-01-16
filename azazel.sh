@@ -9,27 +9,42 @@ NC='\033[0m' # No Color
 
 # Usage function to display help
 usage() {
-    echo -e "${YELLOW}=================== ${GREEN}Script Usage${YELLOW} ===================${NC}"
+    echo -e "${YELLOW}=================== ${GREEN}Script Help${YELLOW} ===================${NC}"
+    echo -e "${BLUE}Description:${NC}"
+    echo -e "  This script automates the process of finding and analyzing subdomains."
+    echo -e "  It integrates various tools for subdomain discovery, port scanning, and reporting."
+
+    echo
+
     echo -e "${BLUE}Usage:${NC}"
-    echo -e "  $0 -f <domain_file> [--loop <loop_time>] [-o <output_file>] [-x <exclude_file>] [--silent]\n"
+    echo -e "  $0 -f <domain_file> [options]\n"
     
-    echo -e "${YELLOW}Options:${NC}"
-    echo -e "  ${GREEN}-f, --file${NC}    ${BLUE}Domain file to process${NC}"
-    echo -e "  ${GREEN}--loop${NC}       ${BLUE}Time in seconds to wait before re-running the script${NC} ${RED}(default: 7200)${NC}"
-    echo -e "  ${GREEN}-o, --output${NC}  ${BLUE}Output file for results${NC} ${RED}(default: subdomains.txt)${NC}"
-    echo -e "  ${GREEN}-x, --exclude${NC} ${BLUE}File with subdomains to exclude from results${NC}"
-    echo -e "  ${GREEN}--silent${NC}     ${BLUE}Run subfinder, httpx, and notify in silent mode${NC}"
-    echo -e "  ${GREEN}-n, --nuclei${NC}     ${BLUE}Run nuclei against newly discovered live subdomains${NC}"
-    echo -e "  ${GREEN}-t, --template${NC}     ${BLUE}Path to nuclei templates${NC} ${RED}(default: ~/nuclei-templates)${NC}\n"
+    echo -e "${BLUE}Options:${NC}"
+    echo -e "  ${GREEN}-f, --file${NC}        ${BLUE}Specify domain file to process${NC}"
+    echo -e "  ${GREEN}--loop${NC}           ${BLUE}Time in seconds to wait before re-running (default: 3600)${NC}"
+    echo -e "  ${GREEN}-o, --output${NC}      ${BLUE}Specify output file for results (default: subdomains.txt)${NC}"
+    echo -e "  ${GREEN}-x, --exclude${NC}     ${BLUE}File with subdomains to exclude${NC}"
+    echo -e "  ${GREEN}--silent${NC}         ${BLUE}Run in silent mode${NC}"
+    echo -e "  ${GREEN}--notify${NC}         ${BLUE}Enable notifications for new subdomains${NC}"
+    echo -e "  ${GREEN}-n, --nuclei${NC}      ${BLUE}Run nuclei against new subdomains${NC}"
+    echo -e "  ${GREEN}-t, --template${NC}    ${BLUE}Nuclei templates path (default: ~/nuclei-templates)${NC}"
+
+    echo
+
+    echo -e "${BLUE}Examples:${NC}"
+    echo -e "  $0 -f domains.txt --loop 3600 --output results.txt"
+    echo -e "  $0 -f domains.txt --silent --notify --nuclei -t ~/nuclei-templates\n"
+
     echo -e "${YELLOW}=================================================${NC}"
     exit 1
 }
 
 domain_file=""
-loop_time=7200
+loop_time=3600
 output_file="output.txt"
 exclude_file=""
 silent_mode=""
+notify_mode=false
 nuclei_mode=false
 template_path=~/nuclei-templates
 
@@ -43,6 +58,10 @@ parse_arguments() {
             --loop)
                 loop_time="$2"
                 shift 2
+                ;;
+            --notify)
+                notify_mode=true
+                shift
                 ;;
             -o|--output)
                 output_file="$2"
@@ -110,15 +129,15 @@ do
     # Process new subdomains with anew and store them in a temporary file
     cat "$output_file" | anew subdomains.txt > new_subdomains.txt
 
-    # Process with httpx and notify
-    cat new_subdomains.txt | httpx $silent_mode -status-code -tech-detect -title | notify $silent_mode
+    # Count the number of subdomains found
+    echo "Number of new subdomains found: $(wc -l < new_subdomains.txt)"
 
-    # Run naabu on the new subdomains
-    naabu -iL new_subdomains.txt | notify $silent_mode
+    # Process with httpx and optionally notify
+    cat new_subdomains.txt | httpx $silent_mode -status-code -tech-detect -title | if $notify_mode; then notify $silent_mode; fi
     
     # Run nuclei on the new subdomains if nuclei_mode is true
     if $nuclei_mode; then
-        nuclei -l new_subdomains.txt -t "$template_path" -o nuclei_output.txt -as | notify $silent_mode
+        nuclei -l new_subdomains.txt -t "$template_path" -o nuclei_output.txt --silent | notify $silent_mode
     fi
 
     # Clear the output file for the next iteration
