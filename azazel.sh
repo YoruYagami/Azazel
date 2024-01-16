@@ -87,7 +87,7 @@ fi
 while :
 do
     # Using assetfinder to find subdomains and output to sub1
-    cat "$domain_file" | assetfinder -subs-only > sub1
+    assetfinder -subs-only < "$domain_file" > sub1
 
     # Using findomain to find subdomains and output to sub2
     findomain -q -f "$domain_file" > sub2
@@ -98,24 +98,21 @@ do
     # Combining outputs from all tools, sort them uniquely, and store in output file
     cat sub1 sub2 sub3 | sort -u > "$output_file"
 
-    # Clean up temporary files
-    rm -rf sub1 sub2 sub3
-
     # Exclude subdomains listed in the exclude file if provided
     if [[ -n "$exclude_file" ]]; then
-        grep -v -f "$exclude_file" "$output_file" > temp.txt
+        grep -v -f "$exclude_file" < "$output_file" > temp.txt
         mv temp.txt "$output_file"
     fi
 
     # Process new subdomains with anew and store them in a temporary file
-    cat "$output_file" | anew subdomains.txt > new_subdomains.txt
+    anew < "$output_file" subdomains.txt > new_subdomains.txt
 
     # Process with httpx and notify
-    cat new_subdomains.txt | httpx $silent_mode -status-code -tech-detect -title | notify $silent_mode
+    httpx $silent_mode -status-code -tech-detect -title < new_subdomains.txt | notify $silent_mode
 
     # Run naabu on the new subdomains
     naabu -iL new_subdomains.txt | notify $silent_mode
-    
+
     # Run nuclei on the new subdomains if nuclei_mode is true
     if $nuclei_mode; then
         nuclei -l new_subdomains.txt -t "$template_path" -o nuclei_output.txt -as | notify $silent_mode
