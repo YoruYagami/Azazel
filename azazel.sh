@@ -120,6 +120,8 @@ do
     # Clean up temporary files
     rm -rf sub1 sub2 sub3
 
+    ### ANALYZE NEW SUBDOMAINS ###
+
     # Exclude subdomains listed in the exclude file if provided
     if [[ -n "$exclude_file" ]]; then
         grep -v -f "$exclude_file" "$output_file" > temp.txt
